@@ -202,7 +202,7 @@ const GoogleAuth = {
                 }
             } else if (res.status === 401) {
                 console.warn('[GoogleAuth] Token expirado ou inválido no servidor. Limpando credenciais locais...');
-                this.signOut();
+                this.signOut(false);
             }
         } catch (e) {
             console.warn('[GoogleAuth] Falha na sincronização em segundo plano:', e);
@@ -210,9 +210,9 @@ const GoogleAuth = {
     },
 
     // 5. LOGOUT
-    async signOut() {
+    async signOut(callBackend = true) {
         try {
-            if (this.token) {
+            if (callBackend && this.token) {
                 fetch('api/auth.php?action=logout', {
                     method: 'POST',
                     headers: { Authorization: `Bearer ${this.token}` }
