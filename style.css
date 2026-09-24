@@ -3504,6 +3504,296 @@ body {
   to { transform: rotate(360deg); }
 }
 
+/* ==========================================================================
+   Google OAuth 2.0 & Gestão de Créditos de IA (Ecossistema 4U)
+   ========================================================================== */
+
+/* Botão Compacto do Google no Header */
+.header-user-auth {
+  display: flex;
+  align-items: center;
+}
+.btn-header-google-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.btn-header-google-login:hover {
+  background: var(--bg-surface-hover);
+  border-color: #4285f4;
+  box-shadow: 0 2px 6px rgba(66, 133, 244, 0.2);
+  transform: translateY(-1px);
+}
+.btn-header-google-login .google-svg {
+  flex-shrink: 0;
+}
+
+/* Pill do Usuário Logado */
+.user-profile-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  padding: 3px 10px 3px 4px;
+  border-radius: 24px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.user-profile-pill:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--ms-green);
+}
+.user-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--ms-green);
+}
+.user-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-main);
+  max-width: 90px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.user-credit-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+}
+.user-credit-tag.badge-vip {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.35);
+}
+.user-credit-tag.badge-credits {
+  background: rgba(16, 124, 65, 0.15);
+  color: var(--ms-green);
+  border: 1px solid rgba(16, 124, 65, 0.3);
+}
+
+/* Dropdown do Perfil do Usuário */
+.user-profile-dropdown {
+  position: fixed;
+  z-index: 10001;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  min-width: 270px;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  animation: userDropFade 0.15s ease-out forwards;
+}
+.user-profile-dropdown.open {
+  display: flex;
+}
+@keyframes userDropFade {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.u-drop-header {
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-panel);
+}
+.u-drop-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--ms-green);
+  object-fit: cover;
+}
+.u-drop-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.u-drop-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.u-drop-email {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.u-drop-status {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.u-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+}
+.u-status-label {
+  color: var(--text-muted);
+}
+.u-status-val {
+  font-weight: 600;
+  color: var(--text-main);
+}
+.u-status-val.text-vip {
+  color: #f59e0b;
+  font-weight: 700;
+}
+.u-status-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.u-status-badge.badge-admin {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+.u-status-badge.badge-user {
+  background: rgba(16, 124, 65, 0.15);
+  color: var(--ms-green);
+}
+
+.u-drop-actions {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.btn-u-action {
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease;
+  text-align: left;
+}
+.btn-u-action:hover {
+  background: var(--bg-surface-hover);
+}
+.btn-u-action.danger {
+  color: var(--accent-red);
+}
+.btn-u-action.danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+/* Modal de Autenticação Necessária para IA */
+.auth-modal-icon {
+  font-size: 3rem;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 4px 10px rgba(16, 124, 65, 0.3));
+}
+.auth-modal-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+.auth-modal-feature {
+  font-size: 0.82rem;
+  color: var(--ms-green);
+  margin-bottom: 12px;
+}
+.auth-modal-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-bottom: 18px;
+}
+.auth-modal-perks {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+  text-align: left;
+}
+.perk-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: var(--text-main);
+}
+
+.auth-modal-btn-wrap {
+  margin-bottom: 14px;
+}
+.google-login-btn-lg {
+  width: 100%;
+  padding: 12px 20px;
+  background: #ffffff;
+  color: #1f2937;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+.google-login-btn-lg:hover {
+  background: #f9fafb;
+  border-color: #4285f4;
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.25);
+  transform: translateY(-1px);
+}
+.auth-modal-terms {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.auth-modal-terms a {
+  color: var(--ms-green);
+  text-decoration: underline;
+}
+
 
 
 

@@ -87,6 +87,17 @@ const AIAssistant = {
 
   // 1. Gerar Cronograma Completo por Prompt
   async generateProject(promptText, startDate, currency) {
+    if (window.GoogleAuth && !GoogleAuth.isLoggedIn()) {
+      GoogleAuth.openAuthModal('Gerador de Cronogramas por Prompt', () => {
+        this.generateProject(promptText, startDate, currency);
+      });
+      return;
+    }
+    if (window.GoogleAuth && !GoogleAuth.hasCredits()) {
+      GoogleAuth.showCreditsDepletedModal();
+      return;
+    }
+
     if (this.isProcessing) return;
     this.setLoading(true, 'modalAiGenerate', '🧠 Criando Estrutura EAP e Gráfico de Gantt com IA...');
 
@@ -98,7 +109,8 @@ const AIAssistant = {
           action: 'generate',
           prompt: promptText,
           startDate: startDate,
-          currency: currency
+          currency: currency,
+          user: window.GoogleAuth ? GoogleAuth.currentUser : null
         })
       });
 
@@ -106,6 +118,9 @@ const AIAssistant = {
       if (!res.success || !res.data) {
         throw new Error(res.error || 'Falha ao gerar projeto com IA.');
       }
+
+      // Consome crédito com sucesso
+      if (window.GoogleAuth) GoogleAuth.consumeCredit(1);
 
       // Carrega o projeto gerado
       State.loadProject(res.data, true);
@@ -121,6 +136,17 @@ const AIAssistant = {
 
   // 2. Auditoria de Riscos e Gargalos
   async auditSchedule() {
+    if (window.GoogleAuth && !GoogleAuth.isLoggedIn()) {
+      GoogleAuth.openAuthModal('Auditoria Preditiva de Riscos PMI', () => {
+        this.auditSchedule();
+      });
+      return;
+    }
+    if (window.GoogleAuth && !GoogleAuth.hasCredits()) {
+      GoogleAuth.showCreditsDepletedModal();
+      return;
+    }
+
     if (this.isProcessing) return;
     this.setLoading(true, 'modalAiAudit', '🛡️ Auditando riscos, folgas e caminho crítico...');
 
@@ -131,7 +157,8 @@ const AIAssistant = {
         body: JSON.stringify({
           action: 'audit',
           project: State.project,
-          tasks: State.tasks
+          tasks: State.tasks,
+          user: window.GoogleAuth ? GoogleAuth.currentUser : null
         })
       });
 
@@ -140,6 +167,7 @@ const AIAssistant = {
         throw new Error(res.error || 'Falha ao auditar cronograma.');
       }
 
+      if (window.GoogleAuth) GoogleAuth.consumeCredit(1);
       this.renderAuditResults(res.audit);
     } catch (err) {
       alert('Erro na Auditoria: ' + err.message);
@@ -205,6 +233,17 @@ const AIAssistant = {
 
   // 3. Relatório de Status Executivo
   async generateStatusReport() {
+    if (window.GoogleAuth && !GoogleAuth.isLoggedIn()) {
+      GoogleAuth.openAuthModal('Relatório Executivo com IA', () => {
+        this.generateStatusReport();
+      });
+      return;
+    }
+    if (window.GoogleAuth && !GoogleAuth.hasCredits()) {
+      GoogleAuth.showCreditsDepletedModal();
+      return;
+    }
+
     if (this.isProcessing) return;
     this.setLoading(true, 'modalAiReport', '📝 Sintetizando progresso e redigindo relatório...');
 
@@ -215,7 +254,8 @@ const AIAssistant = {
         body: JSON.stringify({
           action: 'report',
           project: State.project,
-          tasks: State.tasks
+          tasks: State.tasks,
+          user: window.GoogleAuth ? GoogleAuth.currentUser : null
         })
       });
 
@@ -224,6 +264,7 @@ const AIAssistant = {
         throw new Error(res.error || 'Falha ao redigir relatório.');
       }
 
+      if (window.GoogleAuth) GoogleAuth.consumeCredit(1);
       this.renderReportResults(res.report);
     } catch (err) {
       alert('Erro no Relatório: ' + err.message);
@@ -274,6 +315,17 @@ const AIAssistant = {
 
   // 4. Otimizador de Prazos
   async optimizeSchedule() {
+    if (window.GoogleAuth && !GoogleAuth.isLoggedIn()) {
+      GoogleAuth.openAuthModal('Otimizador de Prazos (Fast-Tracking)', () => {
+        this.optimizeSchedule();
+      });
+      return;
+    }
+    if (window.GoogleAuth && !GoogleAuth.hasCredits()) {
+      GoogleAuth.showCreditsDepletedModal();
+      return;
+    }
+
     if (this.isProcessing) return;
     this.setLoading(true, 'modalAiOptimize', '⚡ Analisando caminhos críticos para Fast-Tracking e Crashing...');
 
@@ -283,7 +335,8 @@ const AIAssistant = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'optimize',
-          tasks: State.tasks
+          tasks: State.tasks,
+          user: window.GoogleAuth ? GoogleAuth.currentUser : null
         })
       });
 
@@ -292,6 +345,7 @@ const AIAssistant = {
         throw new Error(res.error || 'Falha ao calcular otimizações.');
       }
 
+      if (window.GoogleAuth) GoogleAuth.consumeCredit(1);
       this.renderOptimizationResults(res.optimization);
     } catch (err) {
       alert('Erro na Otimização: ' + err.message);

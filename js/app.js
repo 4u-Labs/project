@@ -20,6 +20,7 @@ const App = {
     if (window.CurvaSEvaView) window.CurvaSEvaView.init('curvaSContainer');
     if (window.PortfolioManager) window.PortfolioManager.init('portfolioContainer');
     if (window.CloudShare) window.CloudShare.init();
+    if (window.GoogleAuth) window.GoogleAuth.init();
     if (window.AIAssistant) window.AIAssistant.init();
 
     // 3. Vincular Eventos Globais, Menus e Modais
