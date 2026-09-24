@@ -93,6 +93,10 @@ const WBSGrid = {
         statusIcon = '💎';
         statusTitle = I18N.t('statusMilestone');
       }
+      if (task.constraintType && task.constraintType !== 'ASAP') {
+        statusIcon += ' 📌';
+        statusTitle += ` [Restrição: ${task.constraintType} ${task.constraintDate || ''}]`;
+      }
 
       // Recursos
       const assignedNames = (task.resourceIds || [])

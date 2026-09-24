@@ -71,7 +71,10 @@
           <span>👥</span> <span data-i18n="viewResources">Recursos</span>
         </button>
         <button class="view-tab-btn" data-view="dashboard">
-          <span>📈</span> <span data-i18n="viewDashboard">Painel & KPIs</span>
+          <span>📊</span> <span data-i18n="viewDashboard">Painel & KPIs</span>
+        </button>
+        <button class="view-tab-btn" data-view="curvaS">
+          <span>📈</span> <span>Curva S & EVA</span>
         </button>
         <button class="view-tab-btn" data-view="calendar">
           <span>📅</span> <span data-i18n="viewCalendar">Calendário</span>
@@ -273,6 +276,10 @@
             <span class="r-icon">📌</span>
             <span class="r-text" data-i18n="actSaveBaseline">Salvar Linha de Base</span>
           </button>
+          <button class="ribbon-btn" data-action="calendarSettings">
+            <span class="r-icon">📅</span>
+            <span class="r-text">Feriados & Dias</span>
+          </button>
           <button class="ribbon-btn" data-action="projectInfo">
             <span class="r-icon">⚙️</span>
             <span class="r-text" data-i18n="actProjectInfo">Informações</span>
@@ -303,7 +310,10 @@
     <!-- Visualização 4: Dashboard Executivo -->
     <div class="dashboard-view-container" id="dashboardContainer" style="display: none;"></div>
 
-    <!-- Visualização 5: Calendário Mensal -->
+    <!-- Visualização 5: Curva S & Valor Agregado (EVA) -->
+    <div class="curva-s-view-container" id="curvaSContainer" style="display: none;"></div>
+
+    <!-- Visualização 6: Calendário Mensal -->
     <div class="calendar-view-container" id="calendarContainer" style="display: none;"></div>
   </main>
 
@@ -356,6 +366,26 @@
           <div class="form-group">
             <label data-i18n="colPredecessors">Predecessoras (Ex: 2FS, 3SS+2)</label>
             <input type="text" id="taskPropPreds" placeholder="Ex: 2FS, 3">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tipo de Restrição (Constraint)</label>
+              <select id="taskPropConstraintType">
+                <option value="ASAP">O Mais Cedo Possível (ASAP - Padrão)</option>
+                <option value="ALAP">O Mais Tarde Possível (ALAP)</option>
+                <option value="SNET">Não Iniciar Antes De (SNET)</option>
+                <option value="SNLT">Não Iniciar Depois De (SNLT)</option>
+                <option value="FNET">Não Terminar Antes De (FNET)</option>
+                <option value="FNLT">Não Terminar Depois De (FNLT)</option>
+                <option value="MSO">Deve Iniciar Em (MSO)</option>
+                <option value="MFO">Deve Terminar Em (MFO)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Data Limite da Restrição</label>
+              <input type="date" id="taskPropConstraintDate">
+            </div>
           </div>
 
           <div class="form-group">
@@ -613,6 +643,46 @@
     </div>
   </div>
 
+  <!-- Modal: Calendário & Feriados Nacionais -->
+  <div class="modal-overlay" id="modalCalendarSettings">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title">📅 Calendário de Trabalho & Feriados</h3>
+        <button type="button" class="btn-modal-close" aria-label="Fechar">✕</button>
+      </div>
+      <form id="formCalendarSettings">
+        <div class="modal-body">
+          <div class="form-group mb-3">
+            <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer;">
+              <input type="checkbox" id="calUseNationalHolidays" checked>
+              <span>Respeitar Feriados Nacionais Brasileiros (CLT)</span>
+            </label>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; margin-left: 24px;">
+              Inclui feriados móveis (Carnaval, Sexta-Feira Santa, Corpus Christi pelo algoritmo de Gauss) e feriados fixos (Tiradentes, Independência, Consciência Negra, Natal, etc.).
+            </p>
+          </div>
+
+          <div class="form-group mb-2">
+            <label style="font-weight: 600; margin-bottom: 8px; display: block;">Dias Úteis da Semana</label>
+            <div class="workdays-checkbox-grid">
+              <label class="cal-day-chk"><input type="checkbox" id="calDay_1" checked> <span>Seg</span></label>
+              <label class="cal-day-chk"><input type="checkbox" id="calDay_2" checked> <span>Ter</span></label>
+              <label class="cal-day-chk"><input type="checkbox" id="calDay_3" checked> <span>Qua</span></label>
+              <label class="cal-day-chk"><input type="checkbox" id="calDay_4" checked> <span>Qui</span></label>
+              <label class="cal-day-chk"><input type="checkbox" id="calDay_5" checked> <span>Sex</span></label>
+              <label class="cal-day-chk"><input type="checkbox" id="calDay_6"> <span>Sáb</span></label>
+              <label class="cal-day-chk"><input type="checkbox" id="calDay_0"> <span>Dom</span></label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary btn-modal-close">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar Calendário</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Scripts da Aplicação em Ordem de Dependência -->
   <script src="js/i18n.js"></script>
   <script src="js/engine.js"></script>
@@ -624,6 +694,7 @@
   <script src="js/resources.js"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/calendar-view.js"></script>
+  <script src="js/curva-s-eva.js"></script>
   <script src="js/io-msproject.js"></script>
   <script src="js/ai-assistant.js"></script>
   <script src="js/app.js"></script>

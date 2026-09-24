@@ -32,10 +32,15 @@ const State = {
     hoursPerDay: 8,
     currency: 'BRL',
     baselineSaved: false,
-    view: 'gantt', // 'gantt', 'kanban', 'resources', 'dashboard', 'calendar'
+    view: 'gantt', // 'gantt', 'kanban', 'resources', 'dashboard', 'calendar', 'curvaS'
     zoom: 'week',  // 'day', 'week', 'month', 'quarter'
     showCriticalPath: false,
-    showBaseline: false
+    showBaseline: false,
+    calendarSettings: {
+      useNationalHolidays: true,
+      workDays: [1, 2, 3, 4, 5],
+      customHolidays: []
+    }
   },
 
   tasks: [],
@@ -250,6 +255,8 @@ const State = {
       resourceIds: [],
       level: 0,
       isSummary: false,
+      constraintType: 'ASAP',
+      constraintDate: '',
       notes: ''
     }, data);
 
@@ -438,7 +445,7 @@ const State = {
   },
 
   setView(view) {
-    if (['gantt', 'kanban', 'resources', 'dashboard', 'calendar'].includes(view)) {
+    if (['gantt', 'kanban', 'resources', 'dashboard', 'calendar', 'curvaS'].includes(view)) {
       this.project.view = view;
       this.eventBus.emit('viewChanged', view);
     }

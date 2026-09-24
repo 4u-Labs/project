@@ -17,6 +17,7 @@ const App = {
     ResourcesView.init('resourcesContainer');
     DashboardView.init('dashboardContainer');
     CalendarView.init('calendarContainer');
+    if (window.CurvaSEvaView) window.CurvaSEvaView.init('curvaSContainer');
     if (window.AIAssistant) window.AIAssistant.init();
 
     // 3. Vincular Eventos Globais, Menus e Modais
@@ -192,6 +193,9 @@ const App = {
       case 'projectInfo':
         this.openProjectSettingsModal();
         break;
+      case 'calendarSettings':
+        this.openCalendarSettingsModal();
+        break;
       case 'recalculate':
         State.recalculateAndSave();
         this.showToast('Cronograma recalculado.');
@@ -221,12 +225,14 @@ const App = {
     const resourcesView = document.getElementById('resourcesContainer');
     const dashboardView = document.getElementById('dashboardContainer');
     const calendarView = document.getElementById('calendarContainer');
+    const curvaSView = document.getElementById('curvaSContainer');
 
     splitView.style.display = 'none';
     kanbanView.style.display = 'none';
     resourcesView.style.display = 'none';
     dashboardView.style.display = 'none';
     calendarView.style.display = 'none';
+    if (curvaSView) curvaSView.style.display = 'none';
 
     if (viewName === 'gantt') {
       splitView.style.display = 'flex';
@@ -244,6 +250,11 @@ const App = {
     } else if (viewName === 'calendar') {
       calendarView.style.display = 'block';
       CalendarView.render();
+    } else if (viewName === 'curvaS') {
+      if (curvaSView) {
+        curvaSView.style.display = 'block';
+        CurvaSEvaView.render();
+      }
     }
   },
 
@@ -403,6 +414,9 @@ const App = {
           resourceIds.push(parseInt(chk.value, 10));
         });
 
+        const constraintType = document.getElementById('taskPropConstraintType')?.value || 'ASAP';
+        const constraintDate = document.getElementById('taskPropConstraintDate')?.value || '';
+
         State.updateTask(id, {
           name,
           duration,
@@ -410,12 +424,36 @@ const App = {
           end,
           progress,
           predecessors,
+          constraintType,
+          constraintDate,
           notes,
           resourceIds
         });
 
         this.closeAllModals();
         this.showToast('Tarefa atualizada.');
+      });
+    }
+
+    // Formulário de Calendário de Trabalho
+    const formCal = document.getElementById('formCalendarSettings');
+    if (formCal) {
+      formCal.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const useNational = document.getElementById('calUseNationalHolidays')?.checked ?? true;
+        const workDays = [];
+        for (let d = 0; d <= 6; d++) {
+          const chk = document.getElementById('calDay_' + d);
+          if (chk && chk.checked) workDays.push(d);
+        }
+        State.project.calendarSettings = {
+          useNationalHolidays: useNational,
+          workDays: workDays.length ? workDays : [1, 2, 3, 4, 5],
+          customHolidays: (State.project.calendarSettings && State.project.calendarSettings.customHolidays) || []
+        };
+        State.recalculateAndSave();
+        this.closeAllModals();
+        this.showToast('Calendário de trabalho atualizado.');
       });
     }
 
@@ -475,6 +513,13 @@ const App = {
     document.getElementById('taskPropPreds').value = task.predecessors || '';
     document.getElementById('taskPropNotes').value = task.notes || '';
 
+    if (document.getElementById('taskPropConstraintType')) {
+      document.getElementById('taskPropConstraintType').value = task.constraintType || 'ASAP';
+    }
+    if (document.getElementById('taskPropConstraintDate')) {
+      document.getElementById('taskPropConstraintDate').value = task.constraintDate || '';
+    }
+
     // Lista de Recursos disponíveis
     const resContainer = document.getElementById('taskResList');
     if (resContainer) {
@@ -489,6 +534,22 @@ const App = {
     }
 
     this.openModal('modalTaskDetails');
+  },
+
+  openCalendarSettingsModal() {
+    const cal = State.project.calendarSettings || {
+      useNationalHolidays: true,
+      workDays: [1, 2, 3, 4, 5],
+      customHolidays: []
+    };
+    const chkHolidays = document.getElementById('calUseNationalHolidays');
+    if (chkHolidays) chkHolidays.checked = !!cal.useNationalHolidays;
+
+    for (let d = 0; d <= 6; d++) {
+      const chk = document.getElementById('calDay_' + d);
+      if (chk) chk.checked = (cal.workDays || [1, 2, 3, 4, 5]).includes(d);
+    }
+    this.openModal('modalCalendarSettings');
   },
 
   openProjectSettingsModal() {

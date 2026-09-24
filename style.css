@@ -1757,3 +1757,308 @@ body {
   line-height: 1.4;
 }
 
+/* ==========================================================================
+   Curva S & Análise de Valor Agregado (EVA / Padrão PMI)
+   ========================================================================== */
+.curva-s-view-container {
+  overflow-y: auto;
+  height: 100%;
+  padding: 1.25rem;
+  box-sizing: border-box;
+}
+
+.eva-view-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.eva-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.eva-header h2 {
+  margin: 0 0 4px 0;
+  font-size: 1.35rem;
+  color: var(--text-main);
+  font-weight: 700;
+}
+.eva-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.eva-date-badge {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  color: var(--text-main);
+}
+
+.eva-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.eva-metric-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.eva-metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+.eva-metric-card.eva-good {
+  border-left: 4px solid var(--ms-green);
+}
+.eva-metric-card.eva-warn {
+  border-left: 4px solid var(--accent-orange);
+}
+.eva-metric-card.eva-crit {
+  border-left: 4px solid var(--accent-red);
+}
+
+.eva-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.eva-card-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.eva-formula {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  background: var(--bg-panel);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.eva-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin: 0.4rem 0;
+}
+.eva-big-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--text-main);
+  line-height: 1;
+}
+
+.eva-status-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+}
+.eva-status-pill.eva-good {
+  background: rgba(16, 124, 65, 0.2);
+  color: #34d399;
+}
+.eva-status-pill.eva-warn {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+.eva-status-pill.eva-crit {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.eva-card-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-light);
+  padding-top: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.eva-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.25rem;
+}
+.eva-sum-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+.eva-sum-item strong {
+  color: var(--text-main);
+  font-family: var(--font-mono);
+}
+
+/* Painel da Curva S */
+.s-curve-chart-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+.chart-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.chart-panel-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text-main);
+  font-weight: 600;
+}
+.chart-legend {
+  display: flex;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.leg-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.leg-color {
+  width: 14px;
+  height: 4px;
+  border-radius: 2px;
+}
+.leg-planned {
+  background: #38bdf8;
+  border-top: 1px dashed #38bdf8;
+}
+.leg-earned {
+  background: var(--ms-green);
+  height: 5px;
+}
+.leg-actual {
+  background: #f59e0b;
+}
+.leg-today {
+  background: #f43f5e;
+}
+
+.s-curve-svg-container {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--bg-panel);
+  border-radius: 6px;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+.s-curve-svg {
+  display: block;
+  min-width: 680px;
+}
+
+/* Tabela de Fases EVA */
+.eva-phases-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.25rem;
+  overflow-x: auto;
+}
+.eva-phases-panel h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.05rem;
+  color: var(--text-main);
+  font-weight: 600;
+}
+.eva-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.eva-table th, .eva-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+.eva-table th {
+  background: var(--bg-panel);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.eva-table tr:hover td {
+  background: var(--bg-surface-hover);
+}
+.eva-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.eva-tag.badge-good {
+  background: rgba(16, 124, 65, 0.2);
+  color: #34d399;
+}
+.eva-tag.badge-warn {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+.eva-tag.badge-crit {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+/* Configuração de Calendário e Dias Úteis */
+.workdays-checkbox-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+.cal-day-chk {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+.cal-day-chk:hover {
+  background: var(--bg-surface-hover);
+}
+.cal-day-chk:has(input:checked) {
+  border-color: var(--ms-green);
+  background: rgba(16, 124, 65, 0.15);
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+

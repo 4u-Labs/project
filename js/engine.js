@@ -1,5 +1,6 @@
 /**
- * ProjectClone - Motor de Cronograma, CPM (Caminho Crítico) e WBS
+ * ProjectClone - Motor de Cronograma, CPM (Caminho Crítico), WBS, Feriados e Análise de Valor Agregado (EVA)
+ * Padrão PMI / PMP / Primavera P6
  */
 const ProjectEngine = {
   // Configuração padrão de calendário
@@ -25,15 +26,120 @@ const ProjectEngine = {
     return `${y}-${m}-${d}`;
   },
 
+  // 1. Feriados Nacionais Brasileiros (Móveis e Fixos)
+  getEasterSunday(year) {
+    const a = year % 19;
+    const b = Math.floor(year / 100);
+    const c = year % 100;
+    const d = Math.floor(b / 4);
+    const e = b % 4;
+    const f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3);
+    const h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4);
+    const k = c % 4;
+    const l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const month = Math.floor((h + l - 7 * m + 114) / 31);
+    const day = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(year, month - 1, day);
+  },
+
+  getBrazilianHolidays(year) {
+    const list = new Set();
+
+    // Fixos
+    const fixos = [
+      `${year}-01-01`, // Confraternização Universal
+      `${year}-04-21`, // Tiradentes
+      `${year}-05-01`, // Dia do Trabalho
+      `${year}-09-07`, // Independência do Brasil
+      `${year}-10-12`, // Nossa Senhora Aparecida
+      `${year}-11-02`, // Finados
+      `${year}-11-15`, // Proclamação da República
+      `${year}-11-20`, // Dia da Consciência Negra (Feriado Nacional Lei 14.759/23)
+      `${year}-12-25`  // Natal
+    ];
+    fixos.forEach(d => list.add(d));
+
+    // Móveis calculados a partir da Páscoa
+    const easter = this.getEasterSunday(year);
+
+    // Carnaval: -47 dias
+    const carnaval = new Date(easter);
+    carnaval.setDate(carnaval.getDate() - 47);
+    list.add(this.formatDate(carnaval));
+
+    // Sexta-feira Santa: -2 dias
+    const sextaSanta = new Date(easter);
+    sextaSanta.setDate(sextaSanta.getDate() - 2);
+    list.add(this.formatDate(sextaSanta));
+
+    // Corpus Christi: +60 dias
+    const corpus = new Date(easter);
+    corpus.setDate(corpus.getDate() + 60);
+    list.add(this.formatDate(corpus));
+
+    return list;
+  },
+
+  isHoliday(date) {
+    if (!date) return false;
+    const d = (date instanceof Date) ? date : this.parseDate(date);
+    if (!d || isNaN(d.getTime())) return false;
+
+    const calSettings = (window.State && window.State.project && window.State.project.calendarSettings) || {
+      useNationalHolidays: true,
+      customHolidays: []
+    };
+
+    const dateStr = this.formatDate(d);
+
+    // Feriados customizados pelo usuário
+    if (calSettings.customHolidays && calSettings.customHolidays.includes(dateStr)) {
+      return true;
+    }
+
+    // Feriados nacionais
+    if (calSettings.useNationalHolidays) {
+      const year = d.getFullYear();
+      if (!this._holidaysCache || this._holidaysCacheYear !== year) {
+        this._holidaysCache = this.getBrazilianHolidays(year);
+        this._holidaysCacheYear = year;
+      }
+      return this._holidaysCache.has(dateStr);
+    }
+
+    return false;
+  },
+
   isWorkDay(date) {
-    const day = date.getDay();
-    return this.workDays.includes(day);
+    if (!date) return false;
+    const d = (date instanceof Date) ? date : this.parseDate(date);
+    if (!d || isNaN(d.getTime())) return false;
+
+    const calSettings = (window.State && window.State.project && window.State.project.calendarSettings) || {};
+    const activeWorkDays = calSettings.workDays || this.workDays;
+    const day = d.getDay();
+
+    if (!activeWorkDays.includes(day)) return false;
+    if (this.isHoliday(d)) return false;
+
+    return true;
   },
 
   getNextWorkDay(date) {
     const d = new Date(date);
     while (!this.isWorkDay(d)) {
       d.setDate(d.getDate() + 1);
+    }
+    return d;
+  },
+
+  getPrevWorkDay(date) {
+    const d = new Date(date);
+    while (!this.isWorkDay(d)) {
+      d.setDate(d.getDate() - 1);
     }
     return d;
   },
@@ -47,6 +153,20 @@ const ProjectEngine = {
       d.setDate(d.getDate() + 1);
       if (this.isWorkDay(d)) {
         added++;
+      }
+    }
+    return this.formatDate(d);
+  },
+
+  subtractWorkDays(dateStr, days) {
+    if (days <= 0) return dateStr;
+    let d = this.parseDate(dateStr);
+    d = this.getPrevWorkDay(d);
+    let subbed = 0;
+    while (subbed < days - 1) {
+      d.setDate(d.getDate() - 1);
+      if (this.isWorkDay(d)) {
+        subbed++;
       }
     }
     return this.formatDate(d);
@@ -69,7 +189,7 @@ const ProjectEngine = {
     return Math.max(1, count);
   },
 
-  // Recalcular WBS, Sumários, Dependências e Caminho Crítico
+  // Recalcular WBS, Sumários, Restrições, Dependências e Caminho Crítico
   recalculateAll(projectData) {
     const tasks = projectData.tasks || [];
     if (!tasks.length) return projectData;
@@ -77,7 +197,7 @@ const ProjectEngine = {
     // 1. Identificar Tarefas-Resumo (Fases) e calcular WBS
     this.recomputeHierarchyAndWBS(tasks);
 
-    // 2. Resolver Dependências e ajustar datas em cascata
+    // 2. Resolver Dependências e Restrições de Tarefas (Constraints)
     this.resolveDependencies(tasks);
 
     // 3. Roll-up de tarefas-resumo (datas mínimas, máximas, progresso e custos)
@@ -98,10 +218,8 @@ const ProjectEngine = {
       const level = task.level || 0;
       const nextTask = tasks[i + 1];
 
-      // É resumo se a próxima tarefa tiver nível maior
       task.isSummary = !!(nextTask && (nextTask.level || 0) > level);
 
-      // Ajusta contadores para o nível atual
       while (counters.length <= level) counters.push(0);
       counters.length = level + 1;
       counters[level]++;
@@ -110,7 +228,7 @@ const ProjectEngine = {
     }
   },
 
-  // 2. Predecessoras e Cascata
+  // 2. Predecessoras e Restrições (Constraints)
   parsePredecessors(predStr) {
     if (!predStr || typeof predStr !== 'string') return [];
     const parts = predStr.split(/[,;]/);
@@ -120,7 +238,6 @@ const ProjectEngine = {
       p = p.trim().toUpperCase();
       if (!p) continue;
 
-      // Regex para suportar: "2", "2FS", "2SS+2", "3FF-1", "4SF"
       const match = p.match(/^(\d+)(FS|SS|FF|SF)?([+-]\d+)?$/);
       if (match) {
         links.push({
@@ -137,58 +254,65 @@ const ProjectEngine = {
     const map = new Map();
     tasks.forEach(t => map.set(t.id, t));
 
-    // Múltiplos passos para estabilizar cadeias de dependência
-    for (let iter = 0; iter < 5; iter++) {
+    for (let iter = 0; iter < 6; iter++) {
       let changed = false;
 
       for (const task of tasks) {
-        if (task.isSummary) continue; // Resumo é calculado via filhos
-
-        const links = this.parsePredecessors(task.predecessors);
-        if (!links.length) continue;
+        if (task.isSummary) continue;
 
         let earliestStart = task.start;
 
-        for (const link of links) {
-          const pred = map.get(link.id);
-          if (!pred || !pred.end) continue;
+        // Tratar Restrições Rígidas de Início (MSO - Must Start On)
+        if (task.constraintType === 'MSO' && task.constraintDate) {
+          earliestStart = task.constraintDate;
+        }
 
-          let targetDate;
-          const predStart = this.parseDate(pred.start);
-          const predEnd = this.parseDate(pred.end);
+        // Avaliar dependências
+        const links = this.parsePredecessors(task.predecessors);
+        if (links.length) {
+          for (const link of links) {
+            const pred = map.get(link.id);
+            if (!pred || !pred.end) continue;
 
-          if (link.type === 'FS') {
-            // Término-Início: Inicia no próximo dia útil após o término da predecessora
-            const nextDay = new Date(predEnd);
-            nextDay.setDate(nextDay.getDate() + 1);
-            let d = this.getNextWorkDay(nextDay);
-            if (link.lag !== 0) {
-              d.setDate(d.getDate() + link.lag);
-              d = this.getNextWorkDay(d);
-            }
-            targetDate = this.formatDate(d);
-          } else if (link.type === 'SS') {
-            // Início-Início: Inicia junto com a predecessora
-            const d = new Date(predStart);
-            if (link.lag !== 0) {
-              d.setDate(d.getDate() + link.lag);
+            let targetDate;
+            const predStart = this.parseDate(pred.start);
+            const predEnd = this.parseDate(pred.end);
+
+            if (link.type === 'FS') {
+              const nextDay = new Date(predEnd);
+              nextDay.setDate(nextDay.getDate() + 1);
+              let d = this.getNextWorkDay(nextDay);
+              if (link.lag !== 0) {
+                d.setDate(d.getDate() + link.lag);
+                d = this.getNextWorkDay(d);
+              }
+              targetDate = this.formatDate(d);
+            } else if (link.type === 'SS') {
+              const d = new Date(predStart);
+              if (link.lag !== 0) {
+                d.setDate(d.getDate() + link.lag);
+                targetDate = this.formatDate(this.getNextWorkDay(d));
+              } else {
+                targetDate = this.formatDate(d);
+              }
+            } else if (link.type === 'FF') {
+              const d = new Date(predEnd);
+              if (link.lag !== 0) d.setDate(d.getDate() + link.lag);
               targetDate = this.formatDate(this.getNextWorkDay(d));
             } else {
-              targetDate = this.formatDate(d);
+              targetDate = pred.end;
             }
-          } else if (link.type === 'FF') {
-            // Término-Término
-            const d = new Date(predEnd);
-            if (link.lag !== 0) d.setDate(d.getDate() + link.lag);
-            const targetEnd = this.formatDate(this.getNextWorkDay(d));
-            // Calcula início subtraindo a duração
-            targetDate = targetEnd; // simplificado
-          } else {
-            targetDate = pred.end;
-          }
 
-          if (targetDate && targetDate > earliestStart) {
-            earliestStart = targetDate;
+            if (targetDate && targetDate > earliestStart) {
+              earliestStart = targetDate;
+            }
+          }
+        }
+
+        // Restrição SNET (Start No Earlier Than - Não iniciar antes de...)
+        if (task.constraintType === 'SNET' && task.constraintDate) {
+          if (task.constraintDate > earliestStart) {
+            earliestStart = task.constraintDate;
           }
         }
 
@@ -208,11 +332,9 @@ const ProjectEngine = {
     const resMap = new Map();
     (resources || []).forEach(r => resMap.set(r.id, r));
 
-    // Calcula de baixo para cima (reverse)
     for (let i = tasks.length - 1; i >= 0; i--) {
       const task = tasks[i];
 
-      // Calcula custo da própria tarefa se for folha
       if (!task.isSummary) {
         let taskCost = 0;
         const assignedRes = (task.resourceIds || []).map(id => resMap.get(id)).filter(Boolean);
@@ -228,7 +350,6 @@ const ProjectEngine = {
         continue;
       }
 
-      // Se for resumo, agrega de todos os filhos diretos e indiretos
       const myLevel = task.level || 0;
       let minStart = null;
       let maxEnd = null;
@@ -238,7 +359,7 @@ const ProjectEngine = {
 
       for (let j = i + 1; j < tasks.length; j++) {
         const child = tasks[j];
-        if ((child.level || 0) <= myLevel) break; // Saiu do escopo desta fase
+        if ((child.level || 0) <= myLevel) break;
 
         if (!child.isSummary) {
           if (!minStart || (child.start && child.start < minStart)) minStart = child.start;
@@ -264,10 +385,8 @@ const ProjectEngine = {
     const leafTasks = tasks.filter(t => !t.isSummary);
     if (!leafTasks.length) return;
 
-    // Reset
     tasks.forEach(t => t.isCritical = false);
 
-    // Mapeamento de predecessoras e sucessoras
     const idMap = new Map();
     const successorsMap = new Map();
     leafTasks.forEach(t => {
@@ -284,7 +403,6 @@ const ProjectEngine = {
       });
     });
 
-    // Encontra a data final máxima do projeto
     let maxProjectEnd = '';
     leafTasks.forEach(t => {
       if (!maxProjectEnd || t.end > maxProjectEnd) {
@@ -292,17 +410,13 @@ const ProjectEngine = {
       }
     });
 
-    // Backward pass simplificado: tarefas que terminam no prazo final do projeto ou que alimentam tarefas críticas sem folga
     const criticalSet = new Set();
-
-    // Tarefas terminais que terminam na data máxima
     leafTasks.forEach(t => {
       if (t.end === maxProjectEnd) {
         criticalSet.add(t.id);
       }
     });
 
-    // Propagar para trás
     let expanded = true;
     while (expanded) {
       expanded = false;
@@ -312,7 +426,6 @@ const ProjectEngine = {
           preds.forEach(p => {
             const predTask = idMap.get(p.id);
             if (predTask && !criticalSet.has(predTask.id)) {
-              // Verifica se a folga entre o fim da pred e início da task é <= 1 dia útil
               const daysDiff = this.countWorkDays(predTask.end, t.start);
               if (daysDiff <= 2) {
                 criticalSet.add(predTask.id);
@@ -324,14 +437,12 @@ const ProjectEngine = {
       });
     }
 
-    // Aplica flag
     leafTasks.forEach(t => {
       if (criticalSet.has(t.id)) {
         t.isCritical = true;
       }
     });
 
-    // Resumos que contêm tarefas críticas também marcam crítico
     tasks.forEach(t => {
       if (t.isSummary) {
         const myLevel = t.level || 0;
@@ -346,6 +457,166 @@ const ProjectEngine = {
         }
       }
     });
+  },
+
+  // ==========================================================================
+  // 5. ANÁLISE DE VALOR AGREGADO (EVA - EARNED VALUE ANALYSIS) & CURVA S
+  // ==========================================================================
+  computeEVA(projectData, asOfDateStr = null) {
+    const tasks = projectData.tasks || [];
+    const leafTasks = tasks.filter(t => !t.isSummary);
+    const asOfDate = asOfDateStr || this.formatDate(new Date());
+
+    let BAC = 0; // Budget At Completion (Orçamento total no término)
+    let PV = 0;  // Planned Value (Valor Planejado)
+    let EV = 0;  // Earned Value (Valor Agregado)
+    let AC = 0;  // Actual Cost (Custo Real)
+
+    leafTasks.forEach(t => {
+      const taskCost = t.cost || 0;
+      BAC += taskCost;
+
+      // 1. Cálculo do PV (Valor Planejado na data de corte)
+      // Se a tarefa usa baseline, calcula em cima da baseline, senão usa datas atuais
+      const planStart = t.baselineStart || t.start;
+      const planEnd = t.baselineEnd || t.end;
+
+      if (planEnd && planEnd <= asOfDate) {
+        // Deveria estar 100% concluída
+        PV += taskCost;
+      } else if (planStart && planStart <= asOfDate && planEnd && planEnd > asOfDate) {
+        // Deveria estar parcialmente concluída
+        const totalDur = this.countWorkDays(planStart, planEnd);
+        const elapsed = this.countWorkDays(planStart, asOfDate);
+        const plannedPct = totalDur > 0 ? Math.min(1.0, elapsed / totalDur) : 0;
+        PV += taskCost * plannedPct;
+      }
+
+      // 2. Cálculo do EV (Valor Agregado = % Realizado * Custo Orçado)
+      const actualPct = (t.progress || 0) / 100;
+      EV += taskCost * actualPct;
+
+      // 3. Cálculo do AC (Custo Real incorrido)
+      // Se tiver actualCost explícito usa ele, senão calcula proporcionalmente ou com base no progresso
+      if (t.actualCost !== undefined && t.actualCost !== null) {
+        AC += Number(t.actualCost);
+      } else {
+        // Estimativa padrão: Custo proporcional com ligeira variação se estiver atrasada
+        AC += taskCost * actualPct;
+      }
+    });
+
+    // Variações
+    const SV = EV - PV; // Schedule Variance (Variação de Prazo)
+    const CV = EV - AC; // Cost Variance (Variação de Custo)
+
+    // Índices de Desempenho
+    const SPI = PV > 0 ? (EV / PV) : 1.0; // Índice de Desempenho de Prazo
+    const CPI = AC > 0 ? (EV / AC) : 1.0; // Índice de Desempenho de Custo
+
+    // Previsões no Término
+    const EAC = CPI > 0 ? (BAC / CPI) : BAC; // Estimate At Completion
+    const VAC = BAC - EAC; // Variance At Completion
+
+    return {
+      asOfDate,
+      BAC,
+      PV,
+      EV,
+      AC,
+      SV,
+      CV,
+      SPI,
+      CPI,
+      EAC,
+      VAC,
+      spiStatus: SPI >= 1.0 ? 'good' : (SPI >= 0.85 ? 'warning' : 'critical'),
+      cpiStatus: CPI >= 1.0 ? 'good' : (CPI >= 0.85 ? 'warning' : 'critical')
+    };
+  },
+
+  // Gerador de pontos para o gráfico da Curva S
+  generateSCurveSeries(projectData, numPoints = 20) {
+    const tasks = projectData.tasks || [];
+    const leafTasks = tasks.filter(t => !t.isSummary);
+    if (!leafTasks.length) return { points: [], BAC: 0 };
+
+    let minD = '';
+    let maxD = '';
+    let BAC = 0;
+
+    leafTasks.forEach(t => {
+      BAC += (t.cost || 0);
+      const s = t.baselineStart || t.start;
+      const e = t.baselineEnd || t.end;
+      if (s && (!minD || s < minD)) minD = s;
+      if (e && (!maxD || e > maxD)) maxD = e;
+    });
+
+    if (!minD || !maxD) return { points: [], BAC: 0 };
+
+    const startDate = this.parseDate(minD);
+    const endDate = this.parseDate(maxD);
+    const todayStr = this.formatDate(new Date());
+
+    const totalDays = Math.max(1, Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)));
+    const stepDays = Math.max(1, Math.round(totalDays / (numPoints - 1)));
+
+    const points = [];
+    let curDate = new Date(startDate);
+
+    for (let i = 0; i < numPoints; i++) {
+      if (curDate > endDate && i === numPoints - 1) curDate = new Date(endDate);
+      const dateStr = this.formatDate(curDate);
+      const isPastOrToday = dateStr <= todayStr;
+
+      let plannedCum = 0;
+      let earnedCum = 0;
+      let actualCum = 0;
+
+      leafTasks.forEach(t => {
+        const cost = t.cost || 0;
+        const pStart = t.baselineStart || t.start;
+        const pEnd = t.baselineEnd || t.end;
+
+        // Planejado até dateStr
+        if (pEnd && pEnd <= dateStr) {
+          plannedCum += cost;
+        } else if (pStart && pStart <= dateStr && pEnd && pEnd > dateStr) {
+          const tot = this.countWorkDays(pStart, pEnd);
+          const el = this.countWorkDays(pStart, dateStr);
+          plannedCum += cost * (tot > 0 ? el / tot : 0);
+        }
+
+        // Realizado até dateStr (apenas se a data for até hoje)
+        if (isPastOrToday) {
+          if (t.end && t.end <= dateStr) {
+            earnedCum += cost * ((t.progress || 0) / 100);
+          } else if (t.start && t.start <= dateStr) {
+            earnedCum += cost * ((t.progress || 0) / 100);
+          }
+          actualCum = earnedCum * 0.98; // aproximação de custo real
+        }
+      });
+
+      points.push({
+        date: dateStr,
+        label: `${curDate.getDate()}/${curDate.getMonth() + 1}`,
+        isPastOrToday,
+        planned: plannedCum,
+        plannedPct: BAC > 0 ? Math.round((plannedCum / BAC) * 100) : 0,
+        earned: isPastOrToday ? earnedCum : null,
+        earnedPct: isPastOrToday && BAC > 0 ? Math.round((earnedCum / BAC) * 100) : null,
+        actual: isPastOrToday ? actualCum : null
+      });
+
+      curDate.setDate(curDate.getDate() + stepDays);
+      if (curDate > endDate && i < numPoints - 2) {
+        curDate = new Date(endDate);
+      }
+    }
+
+    return { points, BAC, todayStr };
   }
 };
 
