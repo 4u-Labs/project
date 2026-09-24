@@ -20,6 +20,19 @@ const GoogleAuth = {
     _initialized: false,
     pendingAction: null,
 
+    // Controle de Recarga
+    rechargeMethod: 'pix',
+    selectedPackage: 1, // Padrão: 50 créditos (Mais Popular)
+    pixPollingInterval: null,
+    paypalPromise: null,
+    _toastTimeout: null,
+
+    PACKAGES: [
+        { credits: 10, brl: 'R$ 4,90', usd: '$0.99', unitBrl: 'R$ 0,49/un', unitUsd: '$0.10/ea', badgePt: '', badgeEn: '' },
+        { credits: 50, brl: 'R$ 19,90', usd: '$3.99', unitBrl: 'R$ 0,39/un', unitUsd: '$0.08/ea', badgePt: 'MAIS POPULAR', badgeEn: 'MOST POPULAR' },
+        { credits: 100, brl: 'R$ 34,90', usd: '$6.99', unitBrl: 'R$ 0,34/un', unitUsd: '$0.07/ea', badgePt: 'MELHOR VALOR', badgeEn: 'BEST VALUE' }
+    ],
+
     init() {
         this.loadStoredSession();
         this.initTokenClient();
@@ -28,6 +41,17 @@ const GoogleAuth = {
 
         if (this._initialized) return;
         this._initialized = true;
+
+        // Injeta estilos utilitários caso ainda não existam
+        if (!document.getElementById('google-auth-dynamic-styles')) {
+            const style = document.createElement('style');
+            style.id = 'google-auth-dynamic-styles';
+            style.textContent = `
+                @keyframes gaspin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                .ga-spin { display: inline-block; animation: gaspin 1.2s linear infinite; }
+            `;
+            document.head.appendChild(style);
+        }
 
         // Fechar dropdown de usuário ao clicar fora
         document.addEventListener('click', (e) => {
@@ -179,9 +203,7 @@ const GoogleAuth = {
             this.renderAuthUI();
             this.closeAuthModal();
 
-            if (typeof App !== 'undefined' && App.showToast) {
-                App.showToast(this.getLang() === 'en' ? `Welcome, ${this.currentUser.name}!` : `Bem-vindo(a), ${this.currentUser.name}!`);
-            }
+            this.showToast(this.getLang() === 'en' ? `Welcome, ${this.currentUser.name}!` : `Bem-vindo(a), ${this.currentUser.name}!`, 'success');
 
             if (this.pendingAction) {
                 const action = this.pendingAction;
@@ -240,9 +262,7 @@ const GoogleAuth = {
         this.renderAuthUI();
         this.closeUserDropdown();
 
-        if (typeof App !== 'undefined' && App.showToast) {
-            App.showToast(this.getLang() === 'en' ? 'Logged out successfully.' : 'Desconectado com sucesso.');
-        }
+        this.showToast(this.getLang() === 'en' ? 'Logged out successfully.' : 'Desconectado com sucesso.', 'info');
     },
 
     // 6. CHECAGEM DE STATUS & CRÉDITOS
@@ -294,17 +314,15 @@ const GoogleAuth = {
         }
     },
 
-    // 7. RENDERIZADOR SEGURO DE AVATAR (NUNCA exibe ícone 4U gigante)
+    // 7. RENDERIZADOR SEGURO DE AVATAR (NUNCA exibe ícone 4U distorcido)
     getAvatarHtml(name, picture, size = 22) {
         const initial = (name || 'U').trim().charAt(0).toUpperCase();
         const initialBadge = `<div class="user-avatar-initial" style="width:${size}px; height:${size}px; line-height:${size}px; border-radius:50%; background:linear-gradient(135deg, #107c41, #059669); color:#fff; font-weight:800; font-size:${Math.round(size * 0.48)}px; text-align:center; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">${initial}</div>`;
 
-        // Se for nulo, vazio, gravatar genérico ou tiver referência a "4u", usa a inicial do usuário
         if (!picture || typeof picture !== 'string' || picture.toLowerCase().includes('4u') || picture.toLowerCase().includes('gravatar.com')) {
             return initialBadge;
         }
 
-        // Renderiza com fallback seguro caso a imagem do Google expire ou falhe
         return `<img src="${picture}" alt="${name}" class="user-avatar-img" style="width:${size}px; height:${size}px; border-radius:50%; object-fit:cover; display:inline-block; flex-shrink:0;" onerror="this.outerHTML='<div class=\\'user-avatar-initial\\' style=\\'width:${size}px; height:${size}px; line-height:${size}px; border-radius:50%; background:linear-gradient(135deg, #107c41, #059669); color:#fff; font-weight:800; font-size:${Math.round(size * 0.48)}px; text-align:center; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;\\'>${initial}</div>'">`;
     },
 
@@ -444,8 +462,8 @@ const GoogleAuth = {
         }
 
         modal.innerHTML = `
-            <div>
-                <button onclick="GoogleAuth.closeAuthModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 1.1rem; color: #9ca3af; cursor: pointer; font-weight: bold;">✕</button>
+            <div style="background:#ffffff; border-radius:16px; padding:24px; max-width:420px; width:100%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.35); position:relative; color:#1f2937; text-align:left; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                <button type="button" onclick="GoogleAuth.closeAuthModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 1.1rem; color: #9ca3af; cursor: pointer; font-weight: bold;">✕</button>
                 <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(16, 124, 65, 0.12); color: #107c41; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 12px;">
                     🪄
                 </div>
@@ -474,92 +492,593 @@ const GoogleAuth = {
             </div>
         `;
         modal.classList.remove('hidden');
+        modal.style.display = 'flex';
     },
 
     closeAuthModal() {
         const modal = document.getElementById('googleAuthPromptModal');
-        if (modal) modal.classList.add('hidden');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
     },
 
-    // 10. MODAL DE CRÉDITOS & COMPRA
+    // 10. MODAL COMPLETO DE RECARGA DE CRÉDITOS (PIX + PAYPAL 100% BILÍNGUE)
     openCreditsModal(type = 'balance') {
-        let modal = document.getElementById('creditsInfoModal');
-        const isEn = this.getLang() === 'en';
+        this.stopPixPolling();
 
+        const isEn = this.getLang() === 'en';
+        this.rechargeMethod = (isEn ? 'paypal' : 'pix');
+        this.selectedPackage = 1; // Padrão: 50 créditos
+
+        let modal = document.getElementById('creditsInfoModal');
         if (!modal) {
             modal = document.createElement('div');
             modal.id = 'creditsInfoModal';
             document.body.appendChild(modal);
         }
 
+        modal.onclick = (e) => {
+            if (e.target === modal) this.closeCreditsModal();
+        };
+
         const isInsuf = (type === 'insufficient');
         const creditsText = this.isAdmin() ? '∞ VIP' : `${this.credits}`;
 
         modal.innerHTML = `
-            <div>
-                <button onclick="GoogleAuth.closeCreditsModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 1.1rem; color: #9ca3af; cursor: pointer; font-weight: bold;">✕</button>
+            <div style="background:#ffffff; border-radius:16px; padding:22px 24px; max-width:450px; width:100%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.35); position:relative; color:#1f2937; max-height:92vh; overflow-y:auto; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align:left;">
+                <button type="button" onclick="GoogleAuth.closeCreditsModal()" style="position:absolute; top:14px; right:14px; background:none; border:none; font-size:1.15rem; color:#9ca3af; cursor:pointer; font-weight:bold; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:50%; transition:all 0.2s;" onmouseover="this.style.background='#f3f4f6'; this.style.color='#111827'" onmouseout="this.style.background='none'; this.style.color='#9ca3af'">✕</button>
                 
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                    <div style="width: 44px; height: 44px; border-radius: 12px; background: ${isInsuf ? 'rgba(239, 68, 68, 0.12)' : 'rgba(245, 158, 11, 0.15)'}; color: ${isInsuf ? '#dc2626' : '#d97706'}; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                <!-- Cabeçalho -->
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                    <div style="width:44px; height:44px; border-radius:12px; background:${isInsuf ? 'rgba(239, 68, 68, 0.12)' : 'rgba(245, 158, 11, 0.15)'}; color:${isInsuf ? '#dc2626' : '#d97706'}; display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0;">
                         ${isInsuf ? '⚠️' : '💎'}
                     </div>
-                    <div>
-                        <h3 style="font-size: 1.1rem; font-weight: 800; color: #111827; margin: 0;">
-                            ${isInsuf ? (isEn ? 'Insufficient AI Credits' : 'Créditos de IA Insuficientes') : (isEn ? '4U Ecosystem Credits' : 'Créditos de Inteligência Artificial')}
+                    <div style="overflow:hidden;">
+                        <h3 style="font-size:1.1rem; font-weight:800; color:#111827; margin:0; line-height:1.2;">
+                            ${isInsuf ? (isEn ? 'Insufficient AI Credits' : 'Créditos de IA Insuficientes') : (isEn ? 'Recharge AI Credits' : 'Recarregar Créditos de IA')}
                         </h3>
-                        <p style="font-size: 0.75rem; color: #6b7280; margin: 2px 0 0 0;">
-                            ${isEn ? 'Unified balance for ProjectClone, ExcelClone, WordClone, FreePDF, KeepAi' : 'Saldo unificado para ProjectClone, ExcelClone, WordClone, FreePDF e KeepAi'}
-                        </p>
+                        <span style="display:inline-block; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.04em; color:#0284c7; font-weight:800; background:rgba(2, 132, 199, 0.1); padding:2px 7px; border-radius:4px; margin-top:3px;">
+                            ${isEn ? 'Unified 4U Ecosystem' : 'Ecossistema Unificado 4U'}
+                        </span>
                     </div>
                 </div>
 
-                <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
-                    <span style="font-size: 0.8rem; color: #4b5563; font-weight: 600;">${isEn ? 'Current Balance:' : 'Seu Saldo Atual:'}</span>
-                    <span style="font-size: 1rem; font-weight: 800; color: #d97706;">💎 ${creditsText} ${isEn ? 'credits' : 'créditos'}</span>
+                <p style="font-size:0.78rem; color:#6b7280; line-height:1.45; margin:0 0 12px 0;">
+                    ${isEn 
+                        ? 'Your AI credits are shared across <strong>ProjectClone, WordClone, ExcelClone, FreePDF, KeepAi</strong> and all 4U tools.' 
+                        : 'Seus créditos são integrados e válidos no <strong>ProjectClone, WordClone, ExcelClone, FreePDF, KeepAi</strong> e todo o ecossistema 4U.'}
+                </p>
+
+                <!-- Saldo Atual -->
+                <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:10px 14px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;">
+                    <span style="font-size:0.8rem; color:#4b5563; font-weight:600;">${isEn ? 'Current Balance:' : 'Seu Saldo Atual:'}</span>
+                    <span style="font-size:0.95rem; font-weight:800; color:#d97706;">💎 ${creditsText} ${isEn ? 'credits' : 'créditos'}</span>
                 </div>
 
-                <div style="margin-bottom: 16px;">
-                    <div style="font-size: 0.78rem; font-weight: 700; color: #374151; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.03em;">
-                        ${isEn ? 'Available Credit Packages:' : 'Pacotes de Créditos Disponíveis:'}
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 6px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.8rem;">
-                            <span style="font-weight: 700; color: #111827;">💎 10 Créditos</span>
-                            <span style="color: #059669; font-weight: 800;">R$ 4,90 <span style="font-size: 0.7rem; color: #6b7280; font-weight: 500;">(R$ 0,49/un)</span></span>
-                        </div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; font-size: 0.8rem;">
-                            <div>
-                                <span style="font-weight: 700; color: #92400e;">💎 50 Créditos</span>
-                                <span style="margin-left: 6px; font-size: 0.65rem; background: #f59e0b; color: #fff; padding: 1px 5px; border-radius: 9999px; font-weight: 700;">MAIS POPULAR</span>
-                            </div>
-                            <span style="color: #b45309; font-weight: 800;">R$ 19,90 <span style="font-size: 0.7rem; color: #78350f; font-weight: 500;">(R$ 0,39/un)</span></span>
-                        </div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.8rem;">
-                            <div>
-                                <span style="font-weight: 700; color: #111827;">💎 100 Créditos</span>
-                                <span style="margin-left: 6px; font-size: 0.65rem; background: #107c41; color: #fff; padding: 1px 5px; border-radius: 9999px; font-weight: 700;">MELHOR VALOR</span>
-                            </div>
-                            <span style="color: #059669; font-weight: 800;">R$ 34,90 <span style="font-size: 0.7rem; color: #6b7280; font-weight: 500;">(R$ 0,34/un)</span></span>
-                        </div>
+                <!-- Abas de Pagamento (PIX vs PayPal) -->
+                <div style="display:flex; gap:6px; background:#f3f4f6; padding:4px; border-radius:10px; border:1px solid #e5e7eb; margin-bottom:14px;">
+                    <button type="button" id="tab-recharge-pix" onclick="GoogleAuth.setRechargeMethod('pix')" style="flex:1; padding:8px 10px; border-radius:7px; border:none; font-weight:700; font-size:0.8rem; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:5px; background:${this.rechargeMethod === 'pix' ? '#107c41' : 'transparent'}; color:${this.rechargeMethod === 'pix' ? '#ffffff' : '#4b5563'}; box-shadow:${this.rechargeMethod === 'pix' ? '0 2px 6px rgba(16,124,65,0.3)' : 'none'};">
+                        <span>🇧🇷</span>
+                        <span>PIX (R$ BRL)</span>
+                    </button>
+                    <button type="button" id="tab-recharge-paypal" onclick="GoogleAuth.setRechargeMethod('paypal')" style="flex:1; padding:8px 10px; border-radius:7px; border:none; font-weight:700; font-size:0.8rem; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:5px; background:${this.rechargeMethod === 'paypal' ? '#107c41' : 'transparent'}; color:${this.rechargeMethod === 'paypal' ? '#ffffff' : '#4b5563'}; box-shadow:${this.rechargeMethod === 'paypal' ? '0 2px 6px rgba(16,124,65,0.3)' : 'none'};">
+                        <span>🌐</span>
+                        <span>PayPal / Card (US$)</span>
+                    </button>
+                </div>
+
+                <!-- Grid de Pacotes de Créditos -->
+                <div id="rechargePackagesGrid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:14px;">
+                    ${this.renderPackageCardsHtml()}
+                </div>
+
+                <!-- Seção PIX -->
+                <div id="pix-payment-section" style="display:${this.rechargeMethod === 'pix' ? 'block' : 'none'};">
+                    <div id="qr-area" style="min-height:0;"></div>
+                    <div style="margin-top:10px;">
+                        <button type="button" id="btn-gerar-pix" onclick="GoogleAuth.generatePix()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:11px 16px; background:linear-gradient(135deg, #107c41, #059669); color:#ffffff; border-radius:10px; font-size:0.88rem; font-weight:800; border:none; cursor:pointer; box-shadow:0 3px 8px rgba(16,124,65,0.3); transition:all 0.2s;">
+                            <span>⚡</span>
+                            <span id="btnGerarPixText">${isEn ? `Generate PIX QR Code (${this.PACKAGES[this.selectedPackage].brl})` : `Gerar QR Code PIX (${this.PACKAGES[this.selectedPackage].brl})`}</span>
+                        </button>
                     </div>
                 </div>
 
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <a href="https://4u.ia.br/app/office/keepai/" target="_blank" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; border-radius: 8px; font-size: 0.85rem; font-weight: 800; text-decoration: none; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35); cursor: pointer; text-align: center;">
-                        <span>💳 ${isEn ? 'Buy Credits (KeepAi / PIX / Card)' : 'Comprar Créditos (PIX / Cartão)'}</span>
+                <!-- Seção PayPal -->
+                <div id="paypal-payment-section" style="display:${this.rechargeMethod === 'paypal' ? 'block' : 'none'}; margin-top:8px;">
+                    <div id="paypal-button-container" style="min-height:48px;"></div>
+                </div>
+
+                <!-- Aviso de Gratuidade -->
+                <div style="margin-top:12px; font-size:0.72rem; color:#4b5563; text-align:center; line-height:1.4; background:#eff6ff; padding:8px 12px; border-radius:8px; border:1px solid #bfdbfe;">
+                    💎 <strong>${isEn ? '100% Free:' : '100% Gratuito:'}</strong> ${isEn ? 'Managing project schedules, charts and saving are 100% free and unlimited. Credits are only needed for AI generation.' : 'A gestão do cronograma, tabelas e salvamento de projetos são totalmente gratuitos. Os créditos são necessários apenas para a Inteligência Artificial.'}
+                </div>
+
+                <!-- Doação Voluntária PayPal -->
+                <div style="margin-top:14px; text-align:center; font-size:0.76rem; border-top:1px solid #e5e7eb; padding-top:12px; line-height:1.4;">
+                    <span style="color:#6b7280;">${isEn ? 'Want to support the developer with an open contribution?' : 'Deseja apenas apoiar o desenvolvedor com uma contribuição voluntária?'}</span><br>
+                    <a href="https://www.paypal.com/ncp/payment/L7YRCS984T33N" target="_blank" rel="noopener noreferrer" style="color:#d97706; font-weight:700; text-decoration:underline; display:inline-flex; align-items:center; gap:4px; margin-top:4px;">
+                        ☕ ${isEn ? 'Make a Free Donation via PayPal' : 'Fazer Doação Livre via PayPal'}
                     </a>
-                    <button type="button" onclick="GoogleAuth.closeCreditsModal()" style="width: 100%; padding: 8px; text-align: center; font-size: 0.8rem; color: #6b7280; background: none; border: none; cursor: pointer;">
+                </div>
+
+                <div style="margin-top:10px;">
+                    <button type="button" onclick="GoogleAuth.closeCreditsModal()" style="width:100%; padding:7px; text-align:center; font-size:0.78rem; color:#6b7280; background:none; border:none; cursor:pointer; border-radius:6px; transition:background 0.2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">
                         ${isEn ? 'Close' : 'Fechar'}
                     </button>
                 </div>
             </div>
         `;
+
         modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+
+        if (this.rechargeMethod === 'paypal') {
+            this.renderPayPalButtons();
+        }
     },
 
     closeCreditsModal() {
+        this.stopPixPolling();
         const modal = document.getElementById('creditsInfoModal');
-        if (modal) modal.classList.add('hidden');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+    },
+
+    setRechargeMethod(method) {
+        this.rechargeMethod = method;
+        const isPix = method === 'pix';
+
+        if (!isPix) {
+            this.stopPixPolling();
+        }
+
+        const tabPix = document.getElementById('tab-recharge-pix');
+        const tabPaypal = document.getElementById('tab-recharge-paypal');
+        if (tabPix) {
+            tabPix.style.background = isPix ? '#107c41' : 'transparent';
+            tabPix.style.color = isPix ? '#ffffff' : '#4b5563';
+            tabPix.style.boxShadow = isPix ? '0 2px 6px rgba(16,124,65,0.3)' : 'none';
+        }
+        if (tabPaypal) {
+            tabPaypal.style.background = !isPix ? '#107c41' : 'transparent';
+            tabPaypal.style.color = !isPix ? '#ffffff' : '#4b5563';
+            tabPaypal.style.boxShadow = !isPix ? '0 2px 6px rgba(16,124,65,0.3)' : 'none';
+        }
+
+        const pixSec = document.getElementById('pix-payment-section');
+        const paypalSec = document.getElementById('paypal-payment-section');
+        if (pixSec) pixSec.style.display = isPix ? 'block' : 'none';
+        if (paypalSec) paypalSec.style.display = !isPix ? 'block' : 'none';
+
+        // Atualiza os preços nos cards
+        this.PACKAGES.forEach((pkg, idx) => {
+            const priceEl = document.getElementById(`pkgPriceDisplay-${idx}`);
+            const unitEl = document.getElementById(`pkgUnitDisplay-${idx}`);
+            if (priceEl) priceEl.textContent = isPix ? pkg.brl : pkg.usd;
+            if (unitEl) unitEl.textContent = isPix ? `(${pkg.unitBrl})` : `(${pkg.unitUsd})`;
+        });
+
+        this.updateGeneratePixButtonText();
+
+        if (!isPix) {
+            this.renderPayPalButtons();
+        }
+    },
+
+    selectRechargePackage(index) {
+        this.selectedPackage = index;
+
+        this.PACKAGES.forEach((_, idx) => {
+            const card = document.getElementById(`pkgCard-${idx}`);
+            if (card) {
+                const isSel = (idx === index);
+                card.style.border = isSel ? '2px solid #f59e0b' : '1px solid #e5e7eb';
+                card.style.background = isSel ? '#fffbeb' : '#ffffff';
+                card.style.boxShadow = isSel ? '0 2px 8px rgba(245,158,11,0.2)' : 'none';
+            }
+        });
+
+        this.updateGeneratePixButtonText();
+
+        const qrArea = document.getElementById('qr-area');
+        if (qrArea) qrArea.innerHTML = '';
+        this.stopPixPolling();
+
+        if (this.rechargeMethod === 'paypal') {
+            this.renderPayPalButtons();
+        }
+    },
+
+    updateGeneratePixButtonText() {
+        const btnText = document.getElementById('btnGerarPixText');
+        if (btnText && this.PACKAGES[this.selectedPackage]) {
+            const isEn = this.getLang() === 'en';
+            const price = this.PACKAGES[this.selectedPackage].brl;
+            btnText.textContent = isEn ? `Generate PIX QR Code (${price})` : `Gerar QR Code PIX (${price})`;
+        }
+    },
+
+    renderPackageCardsHtml() {
+        const isEn = this.getLang() === 'en';
+        const isPix = this.rechargeMethod === 'pix';
+
+        return this.PACKAGES.map((pkg, idx) => {
+            const isSel = (idx === this.selectedPackage);
+            const badge = isEn ? pkg.badgeEn : pkg.badgePt;
+            const badgeColor = idx === 1 ? 'background:#f59e0b; color:#000;' : 'background:#107c41; color:#fff;';
+            const price = isPix ? pkg.brl : pkg.usd;
+            const unit = isPix ? `(${pkg.unitBrl})` : `(${pkg.unitUsd})`;
+
+            return `
+                <div id="pkgCard-${idx}" onclick="GoogleAuth.selectRechargePackage(${idx})" style="position:relative; padding:12px 6px; text-align:center; border-radius:10px; cursor:pointer; transition:all 0.2s; border:${isSel ? '2px solid #f59e0b' : '1px solid #e5e7eb'}; background:${isSel ? '#fffbeb' : '#ffffff'}; box-shadow:${isSel ? '0 2px 8px rgba(245,158,11,0.2)' : 'none'};">
+                    ${badge ? `
+                        <span style="position:absolute; top:-9px; left:50%; transform:translateX(-50%); font-size:0.58rem; font-weight:900; ${badgeColor} padding:1px 6px; border-radius:6px; white-space:nowrap; letter-spacing:0.04em; text-transform:uppercase;">
+                            ${badge}
+                        </span>
+                    ` : ''}
+                    <div style="font-size:1.15rem; font-weight:800; color:#d97706; line-height:1.2;">
+                        💎 ${pkg.credits}
+                    </div>
+                    <div style="font-size:0.68rem; color:#6b7280; font-weight:600; text-transform:uppercase; margin-top:2px;">
+                        ${isEn ? 'credits' : 'créditos'}
+                    </div>
+                    <div id="pkgPriceDisplay-${idx}" style="font-size:0.85rem; font-weight:800; color:#111827; margin-top:4px;">
+                        ${price}
+                    </div>
+                    <div id="pkgUnitDisplay-${idx}" style="font-size:0.62rem; color:#6b7280; margin-top:1px;">
+                        ${unit}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    // 11. GERAÇÃO E GERENCIAMENTO DE PIX
+    async generatePix() {
+        if (!this.isLoggedIn()) {
+            this.openAuthModal(this.getLang() === 'en' ? 'AI Credits Recharge' : 'Recarga de Créditos de IA', () => {
+                this.openCreditsModal('buy');
+            });
+            return;
+        }
+
+        const isEn = this.getLang() === 'en';
+        const btn = document.getElementById('btn-gerar-pix');
+        const qrArea = document.getElementById('qr-area');
+        if (!qrArea) return;
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<span class="ga-spin">⏳</span> ${isEn ? 'Generating PIX...' : 'Gerando PIX...'}`;
+        }
+
+        try {
+            const res = await fetch('api/mp_create.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.token}`
+                },
+                body: JSON.stringify({ package_index: this.selectedPackage })
+            });
+
+            const data = await res.json();
+            if (!data.success) {
+                throw new Error(data.error || (isEn ? 'Failed to generate PIX.' : 'Erro ao gerar PIX.'));
+            }
+
+            this.renderPixQR(data);
+            this.startPixPolling(data.payment_id);
+            this.showToast(isEn ? 'PIX QR Code ready! Scan to pay.' : 'QR Code PIX gerado! Escaneie para pagar.', 'info');
+        } catch (e) {
+            this.showToast(e.message, 'error');
+            if (qrArea) qrArea.innerHTML = `<div style="color:#ef4444; font-size:0.8rem; padding:10px; text-align:center;">⚠️ ${e.message}</div>`;
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                this.updateGeneratePixButtonText();
+            }
+        }
+    },
+
+    renderPixQR(data) {
+        const qrArea = document.getElementById('qr-area');
+        if (!qrArea) return;
+        const isEn = this.getLang() === 'en';
+        const imgSrc = data.qr_code_base64 
+            ? `data:image/png;base64,${data.qr_code_base64}`
+            : `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(data.qr_code || '')}`;
+
+        qrArea.innerHTML = `
+            <div style="background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:14px; margin-top:12px; text-align:center;">
+                <div style="font-weight:700; font-size:0.82rem; color:#111827; margin-bottom:8px;">
+                    ${isEn ? 'Scan the QR Code with your bank app:' : 'Escaneie o QR Code no app do seu banco:'}
+                </div>
+                <img src="${imgSrc}" alt="PIX QR Code" style="width:180px; height:180px; margin:0 auto; display:block; border-radius:8px; border:1px solid #e5e7eb;">
+                
+                <div style="margin-top:12px; text-align:left;">
+                    <label style="display:block; font-size:0.75rem; font-weight:700; color:#4b5563; margin-bottom:4px;">
+                        ${isEn ? 'Or copy the PIX code (Copia e Cola):' : 'Ou use o código Copia e Cola:'}
+                    </label>
+                    <div style="display:flex; gap:6px;">
+                        <input type="text" readonly value="${data.qr_code || ''}" id="pixCopiaColaInput" style="flex:1; padding:7px 10px; font-size:0.72rem; border:1px solid #d1d5db; border-radius:6px; background:#f9fafb; color:#374151; outline:none; font-family:monospace; text-overflow:ellipsis;">
+                        <button type="button" onclick="GoogleAuth.copyPixCode()" style="padding:7px 12px; background:#107c41; color:#fff; font-size:0.75rem; font-weight:700; border:none; border-radius:6px; cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">
+                            <span>📋</span>
+                            <span>${isEn ? 'Copy' : 'Copiar'}</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="margin-top:12px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:0.78rem; color:#059669; font-weight:600;">
+                    <span class="ga-spin">⏳</span>
+                    <span>${isEn ? 'Waiting for payment... Auto-detecting confirmation.' : 'Aguardando pagamento... Reconhecimento automático em andamento.'}</span>
+                </div>
+            </div>
+        `;
+    },
+
+    copyPixCode() {
+        const input = document.getElementById('pixCopiaColaInput');
+        const isEn = this.getLang() === 'en';
+        if (!input || !input.value) return;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(input.value).then(() => {
+                this.showToast(isEn ? 'PIX code copied to clipboard!' : 'Código PIX copiado com sucesso!', 'success');
+            }).catch(() => {
+                input.select();
+                document.execCommand('copy');
+                this.showToast(isEn ? 'PIX code copied to clipboard!' : 'Código PIX copiado com sucesso!', 'success');
+            });
+        } else {
+            input.select();
+            document.execCommand('copy');
+            this.showToast(isEn ? 'PIX code copied to clipboard!' : 'Código PIX copiado com sucesso!', 'success');
+        }
+    },
+
+    startPixPolling(paymentId) {
+        this.stopPixPolling();
+        const initialCredits = this.credits;
+        const isEn = this.getLang() === 'en';
+
+        this.pixPollingInterval = setInterval(async () => {
+            if (!this.token) {
+                this.stopPixPolling();
+                return;
+            }
+            try {
+                const res = await fetch('api/credits.php', {
+                    headers: { 'Authorization': `Bearer ${this.token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && typeof data.credits === 'number') {
+                        if (data.credits > initialCredits) {
+                            const added = data.credits - initialCredits;
+                            this.credits = data.credits;
+                            localStorage.setItem(this.STORAGE_CREDITS, String(this.credits));
+                            this.updateCreditsBadge();
+                            this.stopPixPolling();
+                            this.closeCreditsModal();
+                            this.showToast(
+                                isEn ? `🎉 PIX confirmed! +${added} credits added.` : `🎉 PIX confirmado! +${added} créditos adicionados.`,
+                                'success'
+                            );
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('[GoogleAuth] PIX polling check error:', e);
+            }
+        }, 4000);
+    },
+
+    stopPixPolling() {
+        if (this.pixPollingInterval) {
+            clearInterval(this.pixPollingInterval);
+            this.pixPollingInterval = null;
+        }
+    },
+
+    // 12. PAYPAL SDK E SMART BUTTONS
+    loadPayPalSDK() {
+        if (window.paypal && typeof window.paypal.Buttons === 'function') {
+            return Promise.resolve(window.paypal);
+        }
+        if (this.paypalPromise) {
+            return this.paypalPromise;
+        }
+
+        this.paypalPromise = new Promise((resolve, reject) => {
+            let elapsed = 0;
+            const poller = setInterval(() => {
+                elapsed += 100;
+                if (window.paypal && typeof window.paypal.Buttons === 'function') {
+                    clearInterval(poller);
+                    resolve(window.paypal);
+                } else if (elapsed >= 12000) {
+                    clearInterval(poller);
+                    this.paypalPromise = null;
+                    reject(new Error('Timeout loading PayPal SDK'));
+                }
+            }, 100);
+
+            let script = document.querySelector('script[src*="paypal.com/sdk/js"]');
+            if (!script) {
+                script = document.createElement('script');
+                script.src = 'https://www.paypal.com/sdk/js?client-id=BAAsoqPW8MlsLqTNKrQMoPEeqyfKafERMBvspk51nt_y9eSMEKqFSOMNfzgMlg7ru7TOYtvj_FOtx5mFf0&currency=USD';
+                script.async = true;
+                script.onerror = (err) => {
+                    clearInterval(poller);
+                    this.paypalPromise = null;
+                    reject(err);
+                };
+                document.head.appendChild(script);
+            }
+        });
+
+        return this.paypalPromise;
+    },
+
+    renderPayPalButtons() {
+        const container = document.getElementById('paypal-button-container');
+        if (!container) return;
+
+        const isEn = this.getLang() === 'en';
+        container.innerHTML = `
+            <div style="text-align:center; padding:14px; color:#6b7280; font-size:0.82rem;">
+                <span class="ga-spin">⏳</span>
+                ${isEn ? 'Loading PayPal & Card checkout...' : 'Carregando opções PayPal e Cartão...'}
+            </div>
+        `;
+
+        this.loadPayPalSDK().then((paypal) => {
+            if (!document.getElementById('paypal-button-container')) return;
+            container.innerHTML = '';
+            paypal.Buttons({
+                style: {
+                    layout: 'vertical',
+                    color: 'gold',
+                    shape: 'rect',
+                    label: 'paypal',
+                    height: 42
+                },
+                createOrder: async () => {
+                    if (!this.isLoggedIn() || !this.token) {
+                        this.showToast(isEn ? 'Please sign in first.' : 'Faça login antes de comprar.', 'error');
+                        this.openAuthModal(isEn ? 'AI Credits Recharge' : 'Recarga de Créditos de IA');
+                        throw new Error('Not authenticated');
+                    }
+                    const res = await fetch('api/paypal_create_order.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${this.token}`
+                        },
+                        body: JSON.stringify({
+                            package_index: this.selectedPackage
+                        })
+                    });
+                    const data = await res.json();
+                    if (!data.success || !data.order_id) {
+                        throw new Error(data.error || (isEn ? 'Failed to create PayPal order' : 'Erro ao criar pedido PayPal'));
+                    }
+                    return data.order_id;
+                },
+                onApprove: async (data) => {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:16px; color:#2563eb; font-size:0.85rem; font-weight:700;">
+                            <span class="ga-spin">⏳</span>
+                            ${isEn ? 'Confirming payment with PayPal...' : 'Confirmando pagamento no PayPal...'}
+                        </div>
+                    `;
+                    try {
+                        const res = await fetch('api/paypal_capture_order.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.token}`
+                            },
+                            body: JSON.stringify({ order_id: data.orderID })
+                        });
+                        const captureData = await res.json();
+                        if (captureData.success) {
+                            this.credits = captureData.new_credits;
+                            localStorage.setItem(this.STORAGE_CREDITS, String(this.credits));
+                            this.updateCreditsBadge();
+                            this.showToast(
+                                isEn ? `🎉 +${captureData.credits_added} credits added!` : `🎉 +${captureData.credits_added} créditos adicionados!`,
+                                'success'
+                            );
+                            setTimeout(() => this.closeCreditsModal(), 1200);
+                        } else {
+                            throw new Error(captureData.error || 'Capture failed');
+                        }
+                    } catch (err) {
+                        this.showToast(err.message || 'Error capturing PayPal payment', 'error');
+                        this.renderPayPalButtons();
+                    }
+                },
+                onError: (err) => {
+                    console.error('[GoogleAuth] PayPal error:', err);
+                    this.showToast(isEn ? 'PayPal checkout error. Please try again.' : 'Erro no pagamento PayPal. Tente novamente.', 'error');
+                }
+            }).render('#paypal-button-container').catch((renderErr) => {
+                console.error('[GoogleAuth] PayPal render error:', renderErr);
+                container.innerHTML = `
+                    <div style="color:#ef4444; font-size:0.8rem; text-align:center; padding:12px;">
+                        ⚠️ ${isEn ? 'Could not render PayPal buttons.' : 'Não foi possível exibir botões PayPal.'}
+                        <br><br>
+                        <button type="button" onclick="GoogleAuth.renderPayPalButtons()" style="padding:6px 12px; background:#f3f4f6; border:1px solid #d1d5db; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:700;">
+                            🔄 ${isEn ? 'Retry' : 'Tentar novamente'}
+                        </button>
+                    </div>
+                `;
+            });
+        }).catch((err) => {
+            console.error('[GoogleAuth] Failed to load PayPal SDK:', err);
+            container.innerHTML = `
+                <div style="color:#ef4444; font-size:0.8rem; text-align:center; padding:12px;">
+                    ⚠️ ${isEn ? 'Could not load PayPal. Check ad-blocker or connection.' : 'Não foi possível carregar o PayPal. Verifique conexões ou bloqueadores de anúncio.'}
+                    <br><br>
+                    <button type="button" onclick="GoogleAuth.renderPayPalButtons()" style="padding:6px 12px; background:#f3f4f6; border:1px solid #d1d5db; border-radius:6px; cursor:pointer; font-size:0.75rem; font-weight:700;">
+                        🔄 ${isEn ? 'Retry' : 'Tentar novamente'}
+                    </button>
+                </div>
+            `;
+        });
+    },
+
+    // 13. NOTIFICAÇÕES VISUAIS TOAST RESILIENTES
+    showToast(msg, type = 'info') {
+        if (typeof App !== 'undefined' && typeof App.showToast === 'function') {
+            App.showToast(msg);
+            return;
+        }
+
+        let toast = document.getElementById('googleAuthGlobalToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'googleAuthGlobalToast';
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                z-index: 100000;
+                padding: 10px 18px;
+                border-radius: 10px;
+                font-size: 0.82rem;
+                font-weight: 700;
+                color: #ffffff;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+                transition: all 0.3s ease;
+                pointer-events: none;
+                opacity: 0;
+                transform: translateY(12px);
+                font-family: inherit;
+            `;
+            document.body.appendChild(toast);
+        }
+
+        const bgColors = {
+            success: '#107c41',
+            error: '#dc2626',
+            info: '#1f2937'
+        };
+        toast.style.background = bgColors[type] || bgColors.info;
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+
+        clearTimeout(this._toastTimeout);
+        this._toastTimeout = setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(12px)';
+        }, 4000);
     }
 };
 
