@@ -1,5 +1,5 @@
 // Service Worker para ProjectClone - Suporte Offline Completo
-const CACHE_NAME = 'projectclone-v1.2';
+const CACHE_NAME = 'projectclone-v1.3';
 
 const ASSETS_TO_CACHE = [
   './',

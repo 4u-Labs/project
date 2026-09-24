@@ -52,6 +52,13 @@ const WBSGrid = {
     const resMap = new Map();
     resources.forEach(r => resMap.set(r.id, r));
 
+    // Identificar recursos sobrealocados
+    const overResIds = new Set();
+    if (window.ProjectEngine && ProjectEngine.computeResourceWorkload) {
+      const wl = ProjectEngine.computeResourceWorkload({ tasks: State.tasks, resources: State.resources });
+      (wl.resources || []).forEach(r => { if (r.isOverallocated) overResIds.add(r.id); });
+    }
+
     let html = '';
     let isHiddenByParent = false;
     let hiddenLevel = 999;
@@ -96,6 +103,15 @@ const WBSGrid = {
       if (task.constraintType && task.constraintType !== 'ASAP') {
         statusIcon += ' 📌';
         statusTitle += ` [Restrição: ${task.constraintType} ${task.constraintDate || ''}]`;
+      }
+      if (task.levelingDelay && task.levelingDelay > 0) {
+        statusIcon += ' ⚡';
+        statusTitle += ` [Nivelado: +${task.levelingDelay}d]`;
+      }
+      const hasOverRes = !task.isSummary && (task.resourceIds || []).some(id => overResIds.has(id));
+      if (hasOverRes) {
+        statusIcon += ' ⚠️';
+        statusTitle += ' [Recurso Sobrealocado]';
       }
 
       // Recursos

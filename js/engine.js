@@ -316,6 +316,14 @@ const ProjectEngine = {
           }
         }
 
+        // Atraso de Nivelamento de Recursos (Leveling Delay)
+        if (task.levelingDelay && task.levelingDelay > 0 && task.baseStart) {
+          const delayStart = this.addWorkDays(task.baseStart, task.levelingDelay);
+          if (delayStart > earliestStart) {
+            earliestStart = delayStart;
+          }
+        }
+
         if (earliestStart !== task.start) {
           task.start = earliestStart;
           task.end = this.addWorkDays(task.start, Math.max(1, task.duration || 1));
@@ -617,7 +625,249 @@ const ProjectEngine = {
     }
 
     return { points, BAC, todayStr };
+  },
+
+  // 7. Gestão Avançada de Equipe & Histograma de Carga
+  computeResourceWorkload(projectData) {
+    const tasks = projectData.tasks || [];
+    const resources = projectData.resources || [];
+    const hoursPerDay = this.hoursPerDay || 8;
+
+    const leafTasks = tasks.filter(t => !t.isSummary && t.start && t.end);
+    const resMap = new Map();
+
+    resources.forEach(r => {
+      resMap.set(r.id, {
+        id: r.id,
+        name: r.name,
+        role: r.role || '',
+        type: r.type || 'work',
+        standardRate: r.standardRate || 0,
+        maxUnits: r.maxUnits || 100,
+        maxHoursPerDay: ((r.maxUnits || 100) / 100) * hoursPerDay,
+        totalHours: 0,
+        peakHours: 0,
+        peakPct: 0,
+        isOverallocated: false,
+        overallocatedDaysCount: 0,
+        dailyWorkload: {},
+        conflicts: []
+      });
+    });
+
+    if (!leafTasks.length || !resources.length) {
+      return {
+        resources: Array.from(resMap.values()),
+        totalOverallocatedResources: 0,
+        totalConflicts: 0,
+        totalHours: 0
+      };
+    }
+
+    let minDateStr = leafTasks[0].start;
+    let maxDateStr = leafTasks[0].end;
+    leafTasks.forEach(t => {
+      if (t.start && t.start < minDateStr) minDateStr = t.start;
+      if (t.end && t.end > maxDateStr) maxDateStr = t.end;
+    });
+
+    leafTasks.forEach(task => {
+      if (!task.resourceIds || !task.resourceIds.length) return;
+      const dailyHoursForTask = hoursPerDay;
+
+      let cur = this.parseDate(task.start);
+      const endD = this.parseDate(task.end);
+
+      while (cur <= endD) {
+        if (this.isWorkDay(cur)) {
+          const dStr = this.formatDate(cur);
+
+          task.resourceIds.forEach(resId => {
+            const resObj = resMap.get(resId);
+            if (!resObj) return;
+
+            if (!resObj.dailyWorkload[dStr]) {
+              resObj.dailyWorkload[dStr] = {
+                date: dStr,
+                hours: 0,
+                pct: 0,
+                tasks: []
+              };
+            }
+
+            resObj.dailyWorkload[dStr].hours += dailyHoursForTask;
+            resObj.dailyWorkload[dStr].tasks.push({
+              id: task.id,
+              name: task.name,
+              start: task.start,
+              end: task.end,
+              isCritical: !!task.isCritical
+            });
+            resObj.totalHours += dailyHoursForTask;
+          });
+        }
+        cur.setDate(cur.getDate() + 1);
+      }
+    });
+
+    let totalConflicts = 0;
+    let totalOverallocatedResources = 0;
+    let grandTotalHours = 0;
+
+    resMap.forEach(resObj => {
+      grandTotalHours += resObj.totalHours;
+
+      for (const [dateStr, dayData] of Object.entries(resObj.dailyWorkload)) {
+        dayData.pct = resObj.maxHoursPerDay > 0 
+          ? Math.round((dayData.hours / resObj.maxHoursPerDay) * 100) 
+          : 0;
+
+        if (dayData.hours > resObj.peakHours) {
+          resObj.peakHours = dayData.hours;
+          resObj.peakPct = dayData.pct;
+        }
+
+        if (dayData.hours > resObj.maxHoursPerDay) {
+          resObj.isOverallocated = true;
+          resObj.overallocatedDaysCount++;
+          resObj.conflicts.push({
+            date: dateStr,
+            hours: dayData.hours,
+            pct: dayData.pct,
+            tasks: dayData.tasks
+          });
+          totalConflicts++;
+        }
+      }
+
+      if (resObj.isOverallocated) {
+        totalOverallocatedResources++;
+      }
+    });
+
+    return {
+      resources: Array.from(resMap.values()),
+      totalOverallocatedResources,
+      totalConflicts,
+      totalHours: grandTotalHours,
+      dateRange: { start: minDateStr, end: maxDateStr }
+    };
+  },
+
+  // 8. Nivelamento Automático de Recursos (Resource Leveling)
+  levelResources(projectData) {
+    const tasks = projectData.tasks || [];
+    const resources = projectData.resources || [];
+    const initialEnd = tasks.reduce((max, t) => (!max || (t.end && t.end > max) ? t.end : max), '');
+
+    const shiftedTasks = [];
+    const maxIterations = 20;
+    let iteration = 0;
+    let totalResolved = 0;
+
+    while (iteration < maxIterations) {
+      iteration++;
+      this.resolveDependencies(tasks);
+      this.computeCriticalPath(tasks);
+
+      const workload = this.computeResourceWorkload({ tasks, resources });
+      if (workload.totalOverallocatedResources === 0) {
+        break;
+      }
+
+      let madeProgress = false;
+
+      for (const res of workload.resources) {
+        if (!res.isOverallocated || !res.conflicts.length) continue;
+
+        const conflict = res.conflicts[0];
+        const conflictTasks = conflict.tasks;
+        if (conflictTasks.length < 2) continue;
+
+        const fullTasks = conflictTasks.map(ct => tasks.find(t => t.id === ct.id)).filter(Boolean);
+        if (fullTasks.length < 2) continue;
+
+        // Ordenação por prioridade:
+        // 1. Maior progresso (%) já executado
+        // 2. Caminho crítico preservado
+        // 3. Menor data de início inicial
+        // 4. Menor ID
+        fullTasks.sort((a, b) => {
+          if ((b.progress || 0) !== (a.progress || 0)) return (b.progress || 0) - (a.progress || 0);
+          if (b.isCritical !== a.isCritical) return b.isCritical ? 1 : -1;
+          if (a.start !== b.start) return a.start < b.start ? -1 : 1;
+          return a.id - b.id;
+        });
+
+        const primary = fullTasks[0];
+        const secondary = fullTasks[1];
+
+        const primaryEnd = this.parseDate(primary.end);
+        const dayAfter = new Date(primaryEnd);
+        dayAfter.setDate(dayAfter.getDate() + 1);
+        const nextWork = this.formatDate(this.getNextWorkDay(dayAfter));
+
+        if (nextWork > secondary.start) {
+          const oldStart = secondary.start;
+          const workDaysDiff = this.countWorkDays(secondary.start, nextWork) - 1;
+          const delayToAdd = Math.max(1, workDaysDiff);
+
+          secondary.baseStart = secondary.baseStart || secondary.start;
+          secondary.levelingDelay = (secondary.levelingDelay || 0) + delayToAdd;
+
+          secondary.start = nextWork;
+          secondary.end = this.addWorkDays(secondary.start, Math.max(1, secondary.duration || 1));
+
+          shiftedTasks.push({
+            taskId: secondary.id,
+            taskName: secondary.name,
+            resourceName: res.name,
+            oldStart,
+            newStart: secondary.start,
+            daysShifted: delayToAdd
+          });
+
+          totalResolved++;
+          madeProgress = true;
+          this.resolveDependencies(tasks);
+          break;
+        }
+      }
+
+      if (!madeProgress) break;
+    }
+
+    this.resolveDependencies(tasks);
+    this.computeCriticalPath(tasks);
+    this.rollupSummaries(tasks, resources);
+
+    const finalEnd = tasks.reduce((max, t) => (!max || (t.end && t.end > max) ? t.end : max), '');
+
+    return {
+      success: true,
+      iterations: iteration,
+      resolvedConflicts: totalResolved,
+      shiftedTasks,
+      initialEnd,
+      finalEnd
+    };
+  },
+
+  // 9. Desfazer / Limpar Nivelamento
+  clearLeveling(projectData) {
+    const tasks = projectData.tasks || [];
+    tasks.forEach(t => {
+      t.levelingDelay = 0;
+      if (t.baseStart) {
+        t.start = t.baseStart;
+        delete t.baseStart;
+      }
+    });
+    this.resolveDependencies(tasks);
+    this.computeCriticalPath(tasks);
+    this.rollupSummaries(tasks, projectData.resources || []);
   }
 };
 
 window.ProjectEngine = ProjectEngine;
+

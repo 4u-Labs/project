@@ -111,6 +111,15 @@ const I18N = {
       resAdd: 'Adicionar Recurso',
       resWork: 'Trabalho',
       resMaterial: 'Material',
+      resSheet: 'Folha de Recursos',
+      resWorkload: 'Histograma de Carga',
+      resLevel: 'Nivelar Equipe',
+      resClearLevel: 'Limpar Nivelamento',
+      resOverallocated: 'Sobrealocado',
+      resBalanced: 'Balanceado',
+      resMaxCapacity: 'Capacidade Máx.',
+      resPeak: 'Pico',
+      tabResource: 'Equipe',
 
       // Dashboard
       kpiTotalTasks: 'Total de Tarefas',
@@ -260,6 +269,15 @@ const I18N = {
       resAdd: 'Add Resource',
       resWork: 'Work',
       resMaterial: 'Material',
+      resSheet: 'Resource Sheet',
+      resWorkload: 'Workload Histogram',
+      resLevel: 'Level Resources',
+      resClearLevel: 'Clear Leveling',
+      resOverallocated: 'Overallocated',
+      resBalanced: 'Balanced',
+      resMaxCapacity: 'Max Capacity',
+      resPeak: 'Peak',
+      tabResource: 'Team',
 
       // Dashboard
       kpiTotalTasks: 'Total Tasks',

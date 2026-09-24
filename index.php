@@ -54,6 +54,7 @@
       <div class="ribbon-tabs-list">
         <button class="ribbon-tab active" data-tab="tabTask" data-i18n="tabTask">Tarefa</button>
         <button class="ribbon-tab tab-ai-highlight" data-tab="tabAi" data-i18n="tabAi">🤖 IA & Automação</button>
+        <button class="ribbon-tab" data-tab="tabResource" data-i18n="tabResource">Equipe</button>
         <button class="ribbon-tab" data-tab="tabFile" data-i18n="tabFile">Arquivo</button>
         <button class="ribbon-tab" data-tab="tabView" data-i18n="tabView">Exibir</button>
         <button class="ribbon-tab" data-tab="tabProject" data-i18n="tabProject">Projeto</button>
@@ -285,6 +286,41 @@
             <span class="r-text" data-i18n="actProjectInfo">Informações</span>
           </button>
           <span class="ribbon-group-title">Configurações</span>
+        </div>
+      </div>
+
+      <!-- Painel: EQUIPE & RECURSOS -->
+      <div class="ribbon-panel" data-panel="tabResource">
+        <div class="ribbon-group">
+          <button class="ribbon-btn btn-ai-sparkle" data-action="levelResources" title="Reprogramar tarefas concorrentes para eliminar sobrecarga">
+            <span class="r-icon">⚡</span>
+            <span class="r-text" data-i18n="resLevel">Nivelar Equipe</span>
+          </button>
+          <button class="ribbon-btn" data-action="clearLeveling" title="Remover atrasos e restaurar datas originais">
+            <span class="r-icon">↩️</span>
+            <span class="r-text" data-i18n="resClearLevel">Limpar Nivelamento</span>
+          </button>
+          <span class="ribbon-group-title">Nivelamento Automático</span>
+        </div>
+
+        <div class="ribbon-group">
+          <button class="ribbon-btn" data-action="openWorkload" title="Ver Histograma e Conflitos Diários">
+            <span class="r-icon">📊</span>
+            <span class="r-text" data-i18n="resWorkload">Histograma</span>
+          </button>
+          <button class="ribbon-btn" data-action="openResourceSheet" title="Ver Folha de Custos e Taxas">
+            <span class="r-icon">📋</span>
+            <span class="r-text" data-i18n="resSheet">Folha de Recursos</span>
+          </button>
+          <span class="ribbon-group-title">Visualizações</span>
+        </div>
+
+        <div class="ribbon-group">
+          <button class="ribbon-btn" data-action="addResource" title="Cadastrar Novo Profissional ou Material">
+            <span class="r-icon">➕</span>
+            <span class="r-text" data-i18n="resAdd">Novo Recurso</span>
+          </button>
+          <span class="ribbon-group-title">Cadastro</span>
         </div>
       </div>
     </div>
@@ -680,6 +716,23 @@
           <button type="submit" class="btn-primary">Salvar Calendário</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: Relatório de Nivelamento de Recursos -->
+  <div class="modal-overlay" id="modalLevelingReport">
+    <div class="modal-card" style="max-width: 640px;">
+      <div class="modal-header">
+        <h3 class="modal-title">⚡ Relatório de Nivelamento de Equipe</h3>
+        <button type="button" class="btn-modal-close" aria-label="Fechar">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="levelingReportContent"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" id="btnUndoLevelingModal">↩️ Desfazer Nivelamento</button>
+        <button type="button" class="btn-primary btn-modal-close">Concluir</button>
+      </div>
     </div>
   </div>
 

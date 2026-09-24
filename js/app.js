@@ -201,6 +201,41 @@ const App = {
         this.showToast('Cronograma recalculado.');
         break;
 
+      // Equipe & Nivelamento
+      case 'levelResources':
+        this.switchView('resources');
+        if (window.ResourcesView) {
+          ResourcesView.currentSubTab = 'workload';
+          ResourcesView.executeLeveling();
+        }
+        break;
+      case 'clearLeveling':
+        this.switchView('resources');
+        if (window.ResourcesView) {
+          ResourcesView.clearLeveling();
+        }
+        break;
+      case 'openWorkload':
+        this.switchView('resources');
+        if (window.ResourcesView) {
+          ResourcesView.currentSubTab = 'workload';
+          ResourcesView.render();
+        }
+        break;
+      case 'openResourceSheet':
+        this.switchView('resources');
+        if (window.ResourcesView) {
+          ResourcesView.currentSubTab = 'sheet';
+          ResourcesView.render();
+        }
+        break;
+      case 'addResource':
+        this.switchView('resources');
+        if (window.ResourcesView) {
+          ResourcesView.openAddPrompt();
+        }
+        break;
+
       // Desfazer / Refazer
       case 'undo':
         if (State.undo()) this.showToast('Ação desfeita (Undo)');
