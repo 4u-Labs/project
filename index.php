@@ -53,6 +53,7 @@
     <div class="ribbon-tabs-bar">
       <div class="ribbon-tabs-list">
         <button class="ribbon-tab active" data-tab="tabTask" data-i18n="tabTask">Tarefa</button>
+        <button class="ribbon-tab tab-ai-highlight" data-tab="tabAi" data-i18n="tabAi">🤖 IA & Automação</button>
         <button class="ribbon-tab" data-tab="tabFile" data-i18n="tabFile">Arquivo</button>
         <button class="ribbon-tab" data-tab="tabView" data-i18n="tabView">Exibir</button>
         <button class="ribbon-tab" data-tab="tabProject" data-i18n="tabProject">Projeto</button>
@@ -83,6 +84,10 @@
       <!-- Painel: TAREFA (Ativo por padrão) -->
       <div class="ribbon-panel active" data-panel="tabTask">
         <div class="ribbon-group">
+          <button class="ribbon-btn btn-ai-sparkle" data-action="openAiGenerate" title="Criar cronograma completo por prompt com IA">
+            <span class="r-icon">🪄</span>
+            <span class="r-text" data-i18n="actAiGenerate">Gerar com IA</span>
+          </button>
           <button class="ribbon-btn" data-action="addTask">
             <span class="r-icon">➕</span>
             <span class="r-text" data-i18n="actAddTask">Nova Tarefa</span>
@@ -132,6 +137,37 @@
             <span class="r-text" data-i18n="actProperties">Propriedades</span>
           </button>
           <span class="ribbon-group-title">Ações</span>
+        </div>
+      </div>
+
+      <!-- Painel: IA & AUTOMAÇÃO -->
+      <div class="ribbon-panel" data-panel="tabAi">
+        <div class="ribbon-group">
+          <button class="ribbon-btn btn-ai-sparkle" data-action="openAiGenerate">
+            <span class="r-icon">🪄</span>
+            <span class="r-text" data-i18n="actAiGenerate">Gerar com IA</span>
+          </button>
+          <span class="ribbon-group-title">Prompt-to-Gantt</span>
+        </div>
+
+        <div class="ribbon-group">
+          <button class="ribbon-btn" data-action="openAiAudit">
+            <span class="r-icon">🛡️</span>
+            <span class="r-text" data-i18n="actAiAudit">Auditar Riscos</span>
+          </button>
+          <button class="ribbon-btn" data-action="openAiOptimize">
+            <span class="r-icon">⚡</span>
+            <span class="r-text" data-i18n="actAiOptimize">Otimizar Prazos</span>
+          </button>
+          <span class="ribbon-group-title">Engenharia Preditiva</span>
+        </div>
+
+        <div class="ribbon-group">
+          <button class="ribbon-btn" data-action="openAiReport">
+            <span class="r-icon">📝</span>
+            <span class="r-text" data-i18n="actAiReport">Relatório Executivo</span>
+          </button>
+          <span class="ribbon-group-title">Comunicação</span>
         </div>
       </div>
 
@@ -452,6 +488,131 @@
     </div>
   </div>
 
+  <!-- ==========================================================================
+       Modais de Inteligência Artificial
+       ========================================================================== -->
+
+  <!-- Modal 1: Gerador de Cronograma com IA -->
+  <div class="modal-overlay" id="modalAiGenerate">
+    <div class="modal-dialog" style="max-width: 640px;">
+      <div class="modal-header">
+        <h3>🪄 Gerador de Cronogramas por Prompt com IA</h3>
+        <button class="btn-modal-close">✕</button>
+      </div>
+      <form id="formAiGenerate">
+        <div class="modal-body">
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px;">
+            Descreva o objetivo do projeto em linguagem natural. A IA criará a EAP completa com fases, subtarefas, durações, predecessoras lógicas e equipe recomendada.
+          </p>
+
+          <!-- Sugestões Rápidas -->
+          <div class="ai-chips-box">
+            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Sugestões Rápidas:</span>
+            <div class="ai-chips-list">
+              <button type="button" class="ai-prompt-chip" data-prompt="Reforma completa de apartamento residencial de 85m² em 45 dias, incluindo demolição, elétrica, porcelanato, gesso, pintura e marcenaria.">🏗️ Reforma de Apartamento (45d)</button>
+              <button type="button" class="ai-prompt-chip" data-prompt="Construção de galpão industrial pré-moldado de 1.200m² em 120 dias com terraplanagem, fundação, cobertura metálica e piso usinado.">🏢 Galpão Industrial (120d)</button>
+              <button type="button" class="ai-prompt-chip" data-prompt="Desenvolvimento de aplicativo mobile de entrega de comida para iOS e Android em 90 dias, com backend API, gateway de pagamento e painel do restaurante.">📱 App Mobile Delivery (90d)</button>
+              <button type="button" class="ai-prompt-chip" data-prompt="Instalação e homologação de usina de energia solar fotovoltaica comercial de 75kWp em 30 dias com projeto, compras, montagem e conexão à rede.">⚡ Energia Solar (30d)</button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 10px;">
+            <label>Descrição Detalhada do Projeto</label>
+            <textarea id="aiPromptInput" rows="4" placeholder="Ex: Construção de uma casa de campo de 150m² em 5 meses, com 3 suítes, varanda gourmet e piscina..." required></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Data de Início Prevista</label>
+              <input type="date" id="aiStartDate">
+            </div>
+            <div class="form-group">
+              <label>Moeda de Orçamento</label>
+              <select id="aiCurrency">
+                <option value="BRL">Real Brasileiro (R$)</option>
+                <option value="USD">Dólar Americano ($)</option>
+                <option value="EUR">Euro (€)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary btn-modal-cancel">Cancelar</button>
+          <button type="submit" class="btn-primary btn-ai-sparkle">🚀 Gerar Cronograma com IA</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Auditoria de Riscos com IA -->
+  <div class="modal-overlay" id="modalAiAudit">
+    <div class="modal-dialog" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3>🛡️ Auditoria Preditiva de Riscos & Gargalos (IA)</h3>
+        <button class="btn-modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+            Auditoria algorítmica profunda baseada nas melhores práticas PMI / DCMA 14-Point.
+          </p>
+          <button class="btn-primary" id="btnRunAiAudit">🔄 Executar Auditoria</button>
+        </div>
+
+        <div id="aiAuditResults" style="display: none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary btn-modal-close">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Relatório de Status Executivo -->
+  <div class="modal-overlay" id="modalAiReport">
+    <div class="modal-dialog" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3>📝 Relatório de Status Executivo com IA</h3>
+        <button class="btn-modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+            Gera comunicações prontas para WhatsApp e e-mail com as conquistas e metas da semana.
+          </p>
+          <button class="btn-primary" id="btnRunAiReport">🔄 Atualizar Relatório</button>
+        </div>
+
+        <div id="aiReportResults" style="display: none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary btn-modal-close">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Otimizador de Prazos -->
+  <div class="modal-overlay" id="modalAiOptimize">
+    <div class="modal-dialog" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3>⚡ Otimizador de Prazos (Fast-Tracking & Crashing)</h3>
+        <button class="btn-modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+            A IA analisa as folgas e dependências do caminho crítico para encurtar a entrega final.
+          </p>
+          <button class="btn-primary" id="btnRunAiOptimize">⚡ Encontrar Otimizações</button>
+        </div>
+
+        <div id="aiOptimizeResults" style="display: none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary btn-modal-close">Fechar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts da Aplicação em Ordem de Dependência -->
   <script src="js/i18n.js"></script>
   <script src="js/engine.js"></script>
@@ -464,6 +625,7 @@
   <script src="js/dashboard.js"></script>
   <script src="js/calendar-view.js"></script>
   <script src="js/io-msproject.js"></script>
+  <script src="js/ai-assistant.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

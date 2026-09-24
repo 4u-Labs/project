@@ -17,6 +17,7 @@ const App = {
     ResourcesView.init('resourcesContainer');
     DashboardView.init('dashboardContainer');
     CalendarView.init('calendarContainer');
+    if (window.AIAssistant) window.AIAssistant.init();
 
     // 3. Vincular Eventos Globais, Menus e Modais
     this.bindRibbon();
@@ -118,6 +119,18 @@ const App = {
         break;
       case 'openTemplates':
         this.openModal('modalTemplates');
+        break;
+      case 'openAiGenerate':
+        this.openModal('modalAiGenerate');
+        break;
+      case 'openAiAudit':
+        this.openModal('modalAiAudit');
+        break;
+      case 'openAiReport':
+        this.openModal('modalAiReport');
+        break;
+      case 'openAiOptimize':
+        this.openModal('modalAiOptimize');
         break;
       case 'exportXml':
         ProjectIO.exportMsProjectXml();

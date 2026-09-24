@@ -1,5 +1,5 @@
 // Service Worker para ProjectClone - Suporte Offline Completo
-const CACHE_NAME = 'projectclone-v1.0';
+const CACHE_NAME = 'projectclone-v1.1';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -18,6 +18,7 @@ const ASSETS_TO_CACHE = [
   './js/calendar-view.js',
   './js/io-msproject.js',
   './js/templates.js',
+  './js/ai-assistant.js',
   './js/app.js'
 ];
 

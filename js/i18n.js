@@ -12,9 +12,16 @@ const I18N = {
       // Ribbon Tabs
       tabFile: 'Arquivo',
       tabTask: 'Tarefa',
+      tabAi: '🤖 IA & Automação',
       tabResources: 'Recursos',
       tabView: 'Exibir',
       tabProject: 'Projeto',
+
+      // AI Actions
+      actAiGenerate: 'Gerar com IA',
+      actAiAudit: 'Auditar Riscos',
+      actAiReport: 'Relatório Executivo',
+      actAiOptimize: 'Otimizar Prazos',
       
       // File Actions
       actNew: 'Novo',
@@ -154,9 +161,16 @@ const I18N = {
       // Ribbon Tabs
       tabFile: 'File',
       tabTask: 'Task',
+      tabAi: '🤖 AI & Automation',
       tabResources: 'Resources',
       tabView: 'View',
       tabProject: 'Project',
+
+      // AI Actions
+      actAiGenerate: 'Generate with AI',
+      actAiAudit: 'Audit Risks',
+      actAiReport: 'Executive Report',
+      actAiOptimize: 'Optimize Schedule',
 
       // File Actions
       actNew: 'New',
