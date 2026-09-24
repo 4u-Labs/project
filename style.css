@@ -1059,6 +1059,20 @@ body {
   font-size: 0.75rem;
   color: var(--text-muted);
 }
+.cost-breakdown-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+.kpi-sub-highlight {
+  font-size: 0.75rem;
+  color: var(--ms-green);
+}
+.kpi-sub-muted {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
 
 .kpi-bar-track {
   height: 6px;
@@ -1148,6 +1162,16 @@ body {
 .crit-dates {
   color: var(--text-muted);
   font-size: 0.75rem;
+  margin-right: 12px;
+}
+.badge-crit-pct {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 /* ==========================================================================

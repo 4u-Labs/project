@@ -34,6 +34,7 @@ const DashboardView = {
     let totalWorkDays = 0;
     let weightedProgressSum = 0;
     let totalCost = 0;
+    let earnedCost = 0;
     let maxFinishDate = '';
     const criticalTasks = [];
 
@@ -41,7 +42,9 @@ const DashboardView = {
       const dur = Math.max(1, t.duration || 1);
       totalWorkDays += dur;
       weightedProgressSum += dur * (t.progress || 0);
-      totalCost += (t.cost || 0);
+      const c = (t.cost || 0);
+      totalCost += c;
+      earnedCost += c * ((t.progress || 0) / 100);
 
       if (t.end && (!maxFinishDate || t.end > maxFinishDate)) {
         maxFinishDate = t.end;
@@ -67,6 +70,9 @@ const DashboardView = {
 
     const overallPct = totalWorkDays > 0 ? Math.round(weightedProgressSum / totalWorkDays) : 0;
     const costFmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: State.project.currency || 'BRL' }).format(totalCost);
+    const earnedCostFmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: State.project.currency || 'BRL' }).format(earnedCost);
+    const balanceCostFmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: State.project.currency || 'BRL' }).format(Math.max(0, totalCost - earnedCost));
+    const financialPct = totalCost > 0 ? Math.round((earnedCost / totalCost) * 100) : 0;
 
     // Identificar fases principais para gráfico de barras de custo
     const mainPhases = tasks.filter(t => t.level === 0 && t.isSummary);
@@ -109,12 +115,15 @@ const DashboardView = {
             </div>
           </div>
 
-          <div class="kpi-card card-cost">
+          <div class="kpi-card card-cost" id="kpiCardCost" style="cursor: pointer;" title="Clique para abrir a Folha de Recursos e detalhamento de custos">
             <div class="kpi-icon">💰</div>
             <div class="kpi-content">
               <span class="kpi-title">${I18N.t('kpiTotalCost')}</span>
               <span class="kpi-value">${costFmt}</span>
-              <span class="kpi-sub">${State.resources.length} recursos alocados</span>
+              <div class="cost-breakdown-sub">
+                <span class="kpi-sub-highlight" title="Valor Agregado (Progresso Físico x Custo Orçado)">Realizado: <strong>${earnedCostFmt}</strong> (${financialPct}%)</span>
+                <span class="kpi-sub-muted">Saldo: ${balanceCostFmt} • ${State.resources.length} recursos ➔</span>
+              </div>
             </div>
           </div>
 
@@ -162,7 +171,7 @@ const DashboardView = {
                   <span class="crit-id">${t.wbs || t.id}</span>
                   <span class="crit-name">${t.name}</span>
                   <span class="crit-dates">${t.start} ➔ ${t.end}</span>
-                  <span class="crit-pct">${t.progress}%</span>
+                  <span class="crit-pct badge-crit-pct">${t.progress}%</span>
                 </div>
               `).join('') : '<p class="text-muted">Nenhuma tarefa crítica detectada.</p>'}
             </div>
@@ -194,6 +203,13 @@ const DashboardView = {
         ` : ''}
       </div>
     `;
+
+    const costCard = this.container.querySelector('#kpiCardCost');
+    if (costCard) {
+      costCard.addEventListener('click', () => {
+        if (window.App) window.App.switchView('resources');
+      });
+    }
   }
 };
 
