@@ -6,6 +6,8 @@ const I18N = {
 
   dict: {
     pt: {
+      backToOffice: 'OfficeClone®',
+      backToOfficeTitle: 'Voltar ao OfficeClone®',
       appName: 'ProjectClone',
       appSubtitle: 'Gestão Profissional de Projetos & Gantt',
       
@@ -167,6 +169,8 @@ const I18N = {
     },
 
     en: {
+      backToOffice: 'OfficeClone®',
+      backToOfficeTitle: 'Back to OfficeClone®',
       appName: 'ProjectClone',
       appSubtitle: 'Professional Project Management & Gantt',
 

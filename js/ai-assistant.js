@@ -99,7 +99,10 @@ const AIAssistant = {
     }
 
     if (this.isProcessing) return;
-    this.setLoading(true, 'modalAiGenerate', '🧠 Criando Estrutura EAP e Gráfico de Gantt com IA...');
+    const loadingMsg = (typeof I18N !== 'undefined' && I18N.currentLang === 'en')
+      ? '🧠 Generating WBS Structure & Gantt Chart with AI...'
+      : '🧠 Criando Estrutura EAP e Gráfico de Gantt com IA...';
+    this.setLoading(true, 'modalAiGenerate', loadingMsg);
 
     try {
       const response = await fetch('api/ai.php', {
@@ -400,6 +403,9 @@ const AIAssistant = {
           <div class="ai-loader-text">${message}</div>
         `;
         modal.querySelector('.modal-body')?.prepend(loader);
+      } else {
+        const textEl = loader.querySelector('.ai-loader-text');
+        if (textEl) textEl.textContent = message;
       }
       loader.style.display = 'flex';
     } else {

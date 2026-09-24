@@ -28,6 +28,10 @@ $assetVer = filemtime(__DIR__ . '/style.css') ?: time();
        ========================================================================== -->
   <header class="app-header">
     <div class="app-brand">
+      <a href="../index.php" title="Voltar ao OfficeClone®" class="btn-back-office" data-i18n-title="backToOfficeTitle">
+        <span>←</span> <span data-i18n="backToOffice">OfficeClone®</span>
+      </a>
+      <div class="header-divider"></div>
       <img src="icon.svg" alt="ProjectClone" class="app-logo-img">
       <div class="app-title-group">
         <span class="app-name">ProjectClone</span>

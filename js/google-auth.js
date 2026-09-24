@@ -22,13 +22,13 @@ const GoogleAuth = {
     this.renderHeaderAuth();
   },
 
-  // 1. CARREGA USUÁRIO ARMAZENADO LOCALMENTE
+  // 1. CARREGA USUÁRIO ARMAZENADO LOCALMENTE (Compatível com SSO 4U.IA.BR)
   loadStoredUser() {
     try {
-      const stored = localStorage.getItem(this.STORAGE_USER);
+      const stored = localStorage.getItem('user_profile') || localStorage.getItem(this.STORAGE_USER);
       if (stored) {
         this.currentUser = JSON.parse(stored);
-        const storedCredits = localStorage.getItem(this.STORAGE_CREDITS);
+        const storedCredits = localStorage.getItem('user_credits') || localStorage.getItem(this.STORAGE_CREDITS);
         
         if (this.isAdmin()) {
           this.credits = this.ADMIN_CREDITS;
@@ -146,7 +146,9 @@ const GoogleAuth = {
     }
 
     localStorage.setItem(this.STORAGE_USER, JSON.stringify(this.currentUser));
+    localStorage.setItem('user_profile', JSON.stringify(this.currentUser));
     localStorage.setItem(this.STORAGE_CREDITS, String(this.credits));
+    localStorage.setItem('user_credits', String(this.credits));
 
     this.renderHeaderAuth();
   },
@@ -156,7 +158,9 @@ const GoogleAuth = {
     this.currentUser = null;
     this.credits = 0;
     localStorage.removeItem(this.STORAGE_USER);
+    localStorage.removeItem('user_profile');
     localStorage.removeItem(this.STORAGE_CREDITS);
+    localStorage.removeItem('user_credits');
     localStorage.removeItem('user_role');
 
     this.renderHeaderAuth();
@@ -242,7 +246,7 @@ const GoogleAuth = {
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
           </svg>
-          <span class="btn-g-text">Entrar</span>
+          <span class="btn-g-text">${(typeof I18N !== 'undefined' && I18N.currentLang === 'en') ? 'Google Login' : 'Entrar com Google'}</span>
         </button>
       `;
 
@@ -390,3 +394,14 @@ const GoogleAuth = {
 };
 
 window.GoogleAuth = GoogleAuth;
+
+// Auto-inicialização imediata quando o DOM estiver pronto
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      try { GoogleAuth.init(); } catch (e) { console.warn('[GoogleAuth] Auto-init:', e); }
+    });
+  } else {
+    try { GoogleAuth.init(); } catch (e) { console.warn('[GoogleAuth] Auto-init:', e); }
+  }
+}
