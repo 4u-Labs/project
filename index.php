@@ -1,3 +1,6 @@
+<?php
+$assetVer = filemtime(__DIR__ . '/style.css') ?: time();
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -13,7 +16,7 @@
   <link rel="icon" type="image/svg+xml" href="icon.svg">
   <link rel="apple-touch-icon" href="icon.svg">
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=<?= $assetVer ?>">
   
   <!-- Google Identity Services (OAuth 2.0) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -37,7 +40,14 @@
       <button class="btn-header-icon" data-action="undo" title="Desfazer (Ctrl+Z)">↩</button>
       <button class="btn-header-icon" data-action="redo" title="Refazer (Ctrl+Y)">↪</button>
       <button class="btn-header-icon" data-action="saveProject" title="Salvar Projeto (Ctrl+S)">💾</button>
-      <button class="btn-header-share" data-action="openShare" title="Compartilhar cronograma em nuvem via link público ou colaborativo">☁️ Compartilhar</button>
+      <button class="btn-header-share" data-action="openShare" title="Compartilhar cronograma em nuvem via link público ou colaborativo">
+        <svg class="share-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+          <polyline points="16 6 12 2 8 6"/>
+          <line x1="12" y1="2" x2="12" y2="15"/>
+        </svg>
+        <span data-i18n="actShare">Compartilhar</span>
+      </button>
 
       <!-- Idioma PT / EN -->
       <div class="lang-btn-group">
@@ -870,22 +880,22 @@
   </div>
 
   <!-- Scripts da Aplicação em Ordem de Dependência -->
-  <script src="js/i18n.js"></script>
-  <script src="js/engine.js"></script>
-  <script src="js/state.js"></script>
-  <script src="js/templates.js"></script>
-  <script src="js/portfolio.js"></script>
-  <script src="js/cloud-share.js"></script>
-  <script src="js/google-auth.js"></script>
-  <script src="js/wbs-grid.js"></script>
-  <script src="js/gantt.js"></script>
-  <script src="js/kanban.js"></script>
-  <script src="js/resources.js"></script>
-  <script src="js/dashboard.js"></script>
-  <script src="js/calendar-view.js"></script>
-  <script src="js/curva-s-eva.js"></script>
-  <script src="js/io-msproject.js"></script>
-  <script src="js/ai-assistant.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/i18n.js?v=<?= $assetVer ?>"></script>
+  <script src="js/engine.js?v=<?= $assetVer ?>"></script>
+  <script src="js/state.js?v=<?= $assetVer ?>"></script>
+  <script src="js/templates.js?v=<?= $assetVer ?>"></script>
+  <script src="js/portfolio.js?v=<?= $assetVer ?>"></script>
+  <script src="js/cloud-share.js?v=<?= $assetVer ?>"></script>
+  <script src="js/google-auth.js?v=<?= $assetVer ?>"></script>
+  <script src="js/wbs-grid.js?v=<?= $assetVer ?>"></script>
+  <script src="js/gantt.js?v=<?= $assetVer ?>"></script>
+  <script src="js/kanban.js?v=<?= $assetVer ?>"></script>
+  <script src="js/resources.js?v=<?= $assetVer ?>"></script>
+  <script src="js/dashboard.js?v=<?= $assetVer ?>"></script>
+  <script src="js/calendar-view.js?v=<?= $assetVer ?>"></script>
+  <script src="js/curva-s-eva.js?v=<?= $assetVer ?>"></script>
+  <script src="js/io-msproject.js?v=<?= $assetVer ?>"></script>
+  <script src="js/ai-assistant.js?v=<?= $assetVer ?>"></script>
+  <script src="js/app.js?v=<?= $assetVer ?>"></script>
 </body>
 </html>

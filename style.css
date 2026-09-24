@@ -2698,29 +2698,40 @@ body {
    Fase 5: ☁️ Gerenciamento de Múltiplos Projetos & Compartilhamento em Nuvem
    ========================================================================== */
 
-/* Botão de Compartilhar no Header */
+/* Botão de Compartilhar no Header (Estilo Microsoft 365 Fluent) */
 .btn-header-share {
-  background: linear-gradient(135deg, #107c41, #0d6233);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 5px 12px;
-  border-radius: 4px;
+  background: #ffffff;
+  color: #0b552c;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 5px 14px;
+  border-radius: 20px;
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  gap: 7px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  font-family: inherit;
+  line-height: 1.2;
 }
 .btn-header-share:hover {
-  background: linear-gradient(135deg, #138d4b, #107c41);
+  background: #f0fdf4;
+  color: #064020;
   transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(16, 124, 65, 0.4);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+  border-color: #ffffff;
 }
 .btn-header-share:active {
   transform: translateY(0);
+}
+.btn-header-share .share-icon-svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  flex-shrink: 0;
 }
 
 /* Badge do Título com Dropdown */

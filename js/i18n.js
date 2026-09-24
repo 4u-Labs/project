@@ -13,6 +13,7 @@ const I18N = {
       tabFile: 'Arquivo',
       tabTask: 'Tarefa',
       tabAi: '🤖 IA & Automação',
+      tabResource: 'Equipe',
       tabResources: 'Recursos',
       tabView: 'Exibir',
       tabProject: 'Projeto',
@@ -28,6 +29,7 @@ const I18N = {
       actOpen: 'Abrir',
       actSave: 'Salvar',
       actSaveAs: 'Salvar Como',
+      actShare: 'Compartilhar',
       actTemplates: 'Modelos',
       actExportPdf: 'Exportar PDF',
       actExportXml: 'MS Project (XML)',
@@ -172,6 +174,7 @@ const I18N = {
       tabFile: 'File',
       tabTask: 'Task',
       tabAi: '🤖 AI & Automation',
+      tabResource: 'Team',
       tabResources: 'Resources',
       tabView: 'View',
       tabProject: 'Project',
@@ -187,6 +190,7 @@ const I18N = {
       actOpen: 'Open',
       actSave: 'Save',
       actSaveAs: 'Save As',
+      actShare: 'Share',
       actTemplates: 'Templates',
       actExportPdf: 'Export PDF',
       actExportXml: 'MS Project (XML)',
@@ -349,6 +353,12 @@ const I18N = {
   applyAll() {
     document.querySelectorAll('[data-i18n]').forEach((el) => {
       const key = el.getAttribute('data-i18n');
+      const table = this.dict[this.currentLang] || this.dict.pt;
+      const existsInCurrent = table && table[key] !== undefined;
+      const existsInPt = this.dict.pt && this.dict.pt[key] !== undefined;
+      if (!existsInCurrent && !existsInPt) {
+        return; // Preserva o texto padrão em HTML caso a chave seja desconhecida
+      }
       const text = this.t(key);
       if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
         if (el.placeholder) el.placeholder = text;
