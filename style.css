@@ -211,33 +211,44 @@ body {
 
 .google-auth-container .btn-google-login,
 .btn-google-login {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  background: #ffffff;
-  color: #1f2937;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-  text-decoration: none;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  padding: 5px 14px !important;
+  height: 30px !important;
+  box-sizing: border-box !important;
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18) !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
+  font-family: inherit !important;
+  line-height: 1.2 !important;
 }
 .google-auth-container .btn-google-login:hover,
 .btn-google-login:hover {
-  background: #f3f4f6;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
-  transform: translateY(-1px);
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25) !important;
+  border-color: #ffffff !important;
+}
+.google-auth-container .btn-google-login:active,
+.btn-google-login:active {
+  transform: translateY(0) !important;
 }
 .google-auth-container .btn-google-login .google-svg,
 .btn-google-login .google-svg {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
+  width: 16px !important;
+  height: 16px !important;
+  flex-shrink: 0 !important;
+  display: block !important;
 }
 
 .google-auth-user-wrap {
@@ -248,74 +259,93 @@ body {
 }
 
 .btn-credits-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 9px;
-  background: rgba(245, 158, 11, 0.18);
-  border: 1px solid rgba(245, 158, 11, 0.45);
-  color: #d97706;
-  font-size: 0.75rem;
-  font-weight: 800;
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 4px 12px !important;
+  height: 30px !important;
+  box-sizing: border-box !important;
+  background: rgba(245, 158, 11, 0.2) !important;
+  border: 1px solid rgba(245, 158, 11, 0.5) !important;
+  color: #fef08a !important;
+  font-size: 0.8rem !important;
+  font-weight: 800 !important;
+  border-radius: 20px !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  white-space: nowrap !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15) !important;
+  font-family: inherit !important;
+  line-height: 1.2 !important;
 }
 .btn-credits-badge:hover {
-  border-color: #f59e0b;
-  background: rgba(245, 158, 11, 0.28);
+  border-color: #fbbf24 !important;
+  background: rgba(245, 158, 11, 0.32) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 8px rgba(245, 158, 11, 0.3) !important;
 }
 .btn-credits-badge .credits-gem {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   line-height: 1;
 }
 .btn-credits-badge .credits-lbl {
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
   font-weight: 700;
   opacity: 0.9;
 }
 
 .btn-buy-credits {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 9px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: #ffffff;
-  font-size: 0.72rem;
-  font-weight: 800;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 4px 12px !important;
+  height: 30px !important;
+  box-sizing: border-box !important;
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: #ffffff !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  white-space: nowrap !important;
+  font-family: inherit !important;
+  line-height: 1.2 !important;
 }
 .btn-buy-credits:hover {
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.45);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+  box-shadow: 0 3px 8px rgba(245, 158, 11, 0.4) !important;
+  transform: translateY(-1px) !important;
 }
 
 .btn-user-avatar {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 8px 3px 4px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 9999px;
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 3px 10px 3px 4px !important;
+  height: 30px !important;
+  box-sizing: border-box !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 20px !important;
+  color: #ffffff !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  font-family: inherit !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
 }
 .btn-user-avatar:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: #ffffff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
 }
 .btn-user-avatar .user-display-name {
   max-width: 80px;

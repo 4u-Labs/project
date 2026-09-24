@@ -317,8 +317,8 @@ const GoogleAuth = {
 
         if (!this.isLoggedIn()) {
             container.innerHTML = `
-                <button type="button" onclick="GoogleAuth.signIn()" class="btn-google-login" title="${isEn ? 'Sign in with Google to sync 4U AI credits' : 'Entrar com Conta Google e sincronizar créditos de IA'}">
-                    <svg viewBox="0 0 24 24" width="14" height="14" class="google-svg">
+                <button type="button" onclick="GoogleAuth.signIn()" class="btn-google-login" style="display:inline-flex; align-items:center; gap:7px; padding:5px 14px; height:30px; box-sizing:border-box; background:#ffffff; color:#1f2937; font-size:0.82rem; font-weight:700; border-radius:20px; border:1px solid rgba(255,255,255,0.6); box-shadow:0 1px 4px rgba(0,0,0,0.18); cursor:pointer; white-space:nowrap; text-decoration:none; font-family:inherit; line-height:1.2;" title="${isEn ? 'Sign in with Google to sync 4U AI credits' : 'Entrar com Conta Google e sincronizar créditos de IA'}">
+                    <svg viewBox="0 0 24 24" width="16" height="16" class="google-svg" style="width:16px; height:16px; flex-shrink:0; display:block;">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                         <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
@@ -333,25 +333,25 @@ const GoogleAuth = {
             const creditsText = this.isAdmin() ? '∞ VIP' : `${this.credits}`;
 
             container.innerHTML = `
-                <div class="google-auth-user-wrap">
+                <div class="google-auth-user-wrap" style="position:relative; display:flex; align-items:center; gap:6px;">
                     <!-- 1. Badge de Saldo de Créditos IA -->
-                    <button type="button" onclick="GoogleAuth.openCreditsModal('balance')" class="btn-credits-badge" title="${isEn ? 'Your credits balance (Click to manage)' : 'Seus créditos de IA (Clique para ver saldo)'}">
-                        <span class="credits-gem">💎</span>
+                    <button type="button" onclick="GoogleAuth.openCreditsModal('balance')" class="btn-credits-badge" style="display:inline-flex; align-items:center; gap:5px; padding:4px 12px; height:30px; box-sizing:border-box; background:rgba(245,158,11,0.2); border:1px solid rgba(245,158,11,0.5); color:#fef08a; font-size:0.8rem; font-weight:800; border-radius:20px; cursor:pointer; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,0.15); font-family:inherit; line-height:1.2;" title="${isEn ? 'Your credits balance (Click to manage)' : 'Seus créditos de IA (Clique para ver saldo)'}">
+                        <span class="credits-gem" style="font-size:0.85rem; line-height:1;">💎</span>
                         <span id="creditsCountDisplay" class="credits-num">${creditsText}</span>
-                        <span class="credits-lbl">${isEn ? 'cr' : 'créd'}</span>
+                        <span class="credits-lbl" style="font-size:0.68rem; text-transform:uppercase; font-weight:700; opacity:0.9;">${isEn ? 'cr' : 'créd'}</span>
                     </button>
 
                     <!-- 2. Botão COMPRAR CRÉDITOS DIRETO -->
-                    <button type="button" onclick="GoogleAuth.openCreditsModal('buy')" class="btn-buy-credits" title="${isEn ? 'Buy AI Credits' : 'Comprar Créditos de IA'}">
+                    <button type="button" onclick="GoogleAuth.openCreditsModal('buy')" class="btn-buy-credits" style="display:inline-flex; align-items:center; gap:5px; padding:4px 12px; height:30px; box-sizing:border-box; background:linear-gradient(135deg, #f59e0b, #d97706); color:#ffffff; font-size:0.78rem; font-weight:800; border-radius:20px; border:1px solid rgba(255,255,255,0.4); box-shadow:0 1px 4px rgba(0,0,0,0.2); cursor:pointer; white-space:nowrap; font-family:inherit; line-height:1.2;" title="${isEn ? 'Buy AI Credits' : 'Comprar Créditos de IA'}">
                         <span>⚡</span>
                         <span>${isEn ? 'Buy Credits' : 'Comprar Créditos'}</span>
                     </button>
 
                     <!-- 3. Botão Perfil Usuário -->
-                    <button type="button" id="userAvatarBtn" onclick="GoogleAuth.toggleUserDropdown()" class="btn-user-avatar" title="${name}">
+                    <button type="button" id="userAvatarBtn" onclick="GoogleAuth.toggleUserDropdown()" class="btn-user-avatar" style="display:inline-flex; align-items:center; gap:6px; padding:3px 10px 3px 4px; height:30px; box-sizing:border-box; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); border-radius:20px; color:#ffffff; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; line-height:1.2; white-space:nowrap;" title="${name}">
                         ${this.getAvatarHtml(name, avatar, 22)}
-                        <span class="user-display-name">${name}</span>
-                        <i class="fa-solid fa-chevron-down user-chevron"></i>
+                        <span class="user-display-name" style="max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${name}</span>
+                        <i class="fa-solid fa-chevron-down user-chevron" style="font-size:8px; opacity:0.7;"></i>
                     </button>
 
                     <!-- 4. Dropdown de Usuário -->

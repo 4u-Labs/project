@@ -1,5 +1,6 @@
 <?php
-$assetVer = filemtime(__DIR__ . '/style.css') ?: time();
+header("Cache-Control: no-cache, no-store, must-revalidate");
+$assetVer = time();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
