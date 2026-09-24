@@ -9,53 +9,35 @@ Desenvolvido com foco em alta performance, usabilidade moderna e engenharia de p
 
 ## 🌟 Principais Recursos
 
-- 📊 **Gráfico de Gantt Interativo**:
-  - Arrastar e soltar para alterar datas de início e término.
-  - Redimensionamento suave de duração puxando pelas extremidades da barra.
-  - Ajuste de progresso físico (`0% - 100%`) direto na barra.
-  - Zoom dinâmico: **Dias**, **Semanas**, **Meses** e **Trimestres**.
-  - Destaque automático de finais de semana e marcador vertical em tempo real para **Hoje**.
+- 🤖 **Superpoderes com Inteligência Artificial Integrada**:
+  - **Prompt-to-Gantt**: Crie cronogramas completos a partir de texto em linguagem natural.
+  - **Auditoria de Riscos PMI**: Health Score de 0 a 100% detectando tarefas soltas, folgas perigosas e gargalos críticos.
+  - **Fast-Tracking & Crashing**: Identificação de tarefas no caminho crítico passíveis de paralelização.
+  - **Relatórios Executivos**: Geração de resumos em 1 clique para WhatsApp e e-mail formal.
 
-- 🌲 **Tabela WBS / EAP (Work Breakdown Structure)**:
-  - Edição estilo planilha com duplo clique e suporte completo a teclado.
-  - Níveis hierárquicos expansíveis e retráteis (`▶` / `▼`).
-  - Funções de **Recuar** (*Indent*) e **Avançar** (*Outdent*) para criar fases e subprocessos com 1 clique.
-  - Tarefas-resumo com agregação automática de prazos, progresso ponderado e custos.
+- 📈 **Engenharia de Projetos de Alto Nível (PMI / PMP / Primavera P6)**:
+  - **Curva S Físico-Financeira Real**: Curva S de Previsto (Baseline) vs Realizado (Actual).
+  - **Análise de Valor Agregado (EVA/EVM)**: VP, VA, CR, SPI, CPI, SV, CV, EAC e VAC.
+  - **Folga Livre e Folga Total**: Cálculo pelo algoritmo Forward/Backward Pass (ES, EF, LS, LF).
+  - **4 Tipos de Dependências**: FS, SS, FF e SF com Lag e Lead (ex: `2FS+3d`).
+  - **Feriados Nacionais (CLT)**: Calendário com feriados móveis e fixos integrados.
 
-- 🔥 **Cálculo de Caminho Crítico (CPM - Critical Path Method)**:
-  - Identificação algorítmica de tarefas sem folga que definem a data final do projeto.
-  - Destaque visual das barras críticas em vermelho vibrante.
+- 👥 **Gestão Avançada de Equipe & Nivelamento**:
+  - **Histograma de Carga de Trabalho**: Alerta visual em vermelho vibrante quando um recurso excede 100% de alocação semanal.
+  - **Nivelamento Automático de Recursos**: Algoritmo que resolve conflitos de equipe reprogramando tarefas não-críticas pelas folgas.
 
-- 🔗 **Dependências Reais e Conexões SVG**:
-  - Vínculos: **Término-a-Início (FS)**, **Início-a-Início (SS)**, **Término-a-Término (FF)** e **Início-a-Término (SF)** com suporte a atrasos/adiantamentos (*Lag/Lead*).
-  - Desenho vetorial de curvas Bezier inteligentes com setas apontadoras.
-  - Criação rápida de dependências arrastando pinos de conexão de uma barra para outra.
+- 🖱️ **Refinamentos de Usabilidade & UX de Ponta**:
+  - **Reordenação por Arraste (Drag & Drop)** com alças `⠿` e ajuste automático da EAP.
+  - **Zoom Fluido com Ctrl + Scroll** ancorado diretamente sob o cursor do mouse.
+  - **Mini-Mapa Panorâmico do Gantt** com micro-barras e visor interativo.
+  - **Exportação de Imagem PNG em Alta Resolução (300 DPI / 2x Retina)**.
 
-- 📌 **Linha de Base (Baseline)**:
-  - Salve o planejamento inicial e visualize graficamente eventuais desvios de cronograma (*ghost bars*).
-
-- 📋 **Múltiplos Modos de Trabalho**:
-  - 📊 **Gráfico de Gantt**: Visão tradicional e analítica com divisão redimensionável (*split-view*).
-  - 📋 **Quadro Kanban Ágil**: Cartões sincronizados em tempo real categorizados em *Backlog*, *A Fazer*, *Em Andamento* e *Concluído*.
-  - 👥 **Folha de Recursos & Custos**: Cadastro de equipes, equipamentos, taxas horárias e custos orçados totais.
-  - 📈 **Painel Executivo & KPIs**: Métricas de progresso físico, tarefas atrasadas, orçamentos por fase e riscos.
-  - 📅 **Calendário Mensal**: Visualização estilo calendário de eventos e entregas.
-
-- 📐 **Interoperabilidade Total**:
-  - Importação e Exportação de arquivos XML do **Microsoft Project** (`.xml`).
-  - Salvamento completo em arquivo `.projectclone` / `.json`.
-  - Exportação de planilhas formatadas para **Excel (CSV)** com suporte a acentuação (BOM UTF-8).
-  - Impressão otimizada em **PDF**.
-
-- 💡 **Modelos Profissionais Pré-Configurados**:
-  - Construção Civil e Reformas de Edifícios.
-  - Desenvolvimento de Software (SaaS / Web App).
-  - Lançamento de Produto e Marketing Digital.
-
-- 🌐 **Offline First (PWA) & Internacionalização**:
-  - Funciona totalmente offline como Progressive Web App (PWA).
-  - Suporte bilíngue instantâneo: **Português (PT-BR)** e **Inglês (EN-US)** com detecção automática do navegador.
-  - Alternador de Tema Escuro (*Dark Mode*) e Claro (*Light Mode*).
+- ☁️ **Gerenciamento de Múltiplos Projetos & Compartilhamento**:
+  - **Gerenciador de Portfólio**: Salve dezenas de projetos simultâneos e alterne em 1 clique pelo menu suspenso no cabeçalho.
+  - **Master Gantt Roadmap**: Visão executiva consolidando o cronograma de todos os projetos da empresa.
+  - **Compartilhamento em Nuvem**: Gere links curtos públicos protegidos em segundos.
+  - **Modo Somente Leitura (Read-Only)** com botão para salvar cópia editável no dispositivo do visitante.
+  - **Envio direto no WhatsApp e QR Code** instantâneo na tela.
 
 ---
 
