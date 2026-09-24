@@ -201,6 +201,336 @@ body {
 }
 
 /* ==========================================================================
+   Google Auth & Créditos 4U no Header
+   ========================================================================== */
+.google-auth-container {
+  display: flex;
+  align-items: center;
+  margin-left: 4px;
+}
+
+.google-auth-container .btn-google-login,
+.btn-google-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.google-auth-container .btn-google-login:hover,
+.btn-google-login:hover {
+  background: #f3f4f6;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+}
+.google-auth-container .btn-google-login .google-svg,
+.btn-google-login .google-svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.google-auth-user-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-credits-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #d97706;
+  font-size: 0.75rem;
+  font-weight: 800;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-credits-badge:hover {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.28);
+}
+.btn-credits-badge .credits-gem {
+  font-size: 0.8rem;
+  line-height: 1;
+}
+.btn-credits-badge .credits-lbl {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.btn-buy-credits {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.btn-buy-credits:hover {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-user-avatar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 9999px;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-user-avatar:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: #ffffff;
+}
+.btn-user-avatar .user-display-name {
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.btn-user-avatar .user-chevron {
+  font-size: 8px;
+  opacity: 0.7;
+}
+
+/* Restrição estrita de dimensões do avatar (NUNCA permite imagens gigantes) */
+.user-avatar-img,
+.btn-user-avatar img,
+.user-dropdown-header img {
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px !important;
+  max-width: 22px !important;
+  min-height: 22px !important;
+  max-height: 22px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+}
+.user-dropdown-header img {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+}
+
+.user-avatar-initial {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #107c41, #059669) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  flex-shrink: 0 !important;
+  vertical-align: middle !important;
+}
+
+.user-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 36px;
+  width: 240px;
+  background: #ffffff;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+  z-index: 1000;
+  text-align: left;
+}
+.user-dropdown-menu.hidden {
+  display: none !important;
+}
+
+.user-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.user-name-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+.user-email-subtitle {
+  font-size: 0.68rem;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+.user-role-badge {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  background: rgba(16, 124, 65, 0.1);
+  color: #107c41;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.user-role-badge.vip {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+
+.user-dropdown-body {
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.user-balance-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: #f9fafb;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  margin-bottom: 4px;
+}
+.user-balance-row .balance-lbl {
+  color: #6b7280;
+}
+.user-balance-row .balance-val {
+  font-weight: 800;
+  color: #d97706;
+}
+
+.user-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #374151;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+.user-menu-item:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+.user-menu-item.highlight {
+  background: rgba(245, 158, 11, 0.1);
+  color: #b45309;
+  font-weight: 700;
+}
+.user-menu-item.highlight:hover {
+  background: rgba(245, 158, 11, 0.2);
+}
+
+.user-dropdown-footer {
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+}
+.btn-logout {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+.btn-logout:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* Modais de Autenticação e Créditos */
+#googleAuthPromptModal,
+#creditsInfoModal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+}
+#googleAuthPromptModal.hidden,
+#creditsInfoModal.hidden {
+  display: none !important;
+}
+#googleAuthPromptModal > div,
+#creditsInfoModal > div {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  position: relative;
+  color: #1f2937;
+}
+
+/* ==========================================================================
    Ribbon Bar (Menus e Ferramentas Estilo Fluent)
    ========================================================================== */
 .ribbon-container {
@@ -1076,12 +1406,24 @@ body {
   font-weight: 700;
 }
 .kpi-value {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 800;
   margin: 2px 0;
 }
 .kpi-value.date-val {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
+  white-space: nowrap;
+}
+.kpi-value.cost-val,
+.card-cost .kpi-value {
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 .kpi-sub {
   font-size: 0.75rem;
@@ -1094,12 +1436,18 @@ body {
   margin-top: 4px;
 }
 .kpi-sub-highlight {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--ms-green);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .kpi-sub-muted {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .kpi-bar-track {

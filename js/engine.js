@@ -194,6 +194,30 @@ const ProjectEngine = {
     const tasks = projectData.tasks || [];
     if (!tasks.length) return projectData;
 
+    // Normalizar datas anômalas (ex: anos distantes como 2227 gerados por IA)
+    const baseYear = (projectData.project && projectData.project.startDate) 
+      ? parseInt(projectData.project.startDate.substring(0, 4), 10) 
+      : new Date().getFullYear();
+
+    tasks.forEach(t => {
+      ['start', 'end'].forEach(k => {
+        if (t[k] && typeof t[k] === 'string') {
+          const parts = t[k].split('-');
+          if (parts.length === 3) {
+            const yr = parseInt(parts[0], 10);
+            if (yr > baseYear + 5 || yr < baseYear - 1) {
+              parts[0] = String(baseYear + (yr % 2));
+              t[k] = parts.join('-');
+            }
+          }
+        }
+      });
+      // Garante que o fim da tarefa folha seja consistente com início e duração
+      if (t.start && t.duration !== undefined && (!t.end || t.isSummary === false)) {
+        t.end = this.addWorkDays(t.start, Math.max(1, t.duration || 1));
+      }
+    });
+
     // 1. Identificar Tarefas-Resumo (Fases) e calcular WBS
     this.recomputeHierarchyAndWBS(tasks);
 

@@ -1,5 +1,5 @@
 /**
- * PointClone — Google OAuth 2.0 & Gestão de Créditos Compartilhados do Ecossistema 4U.IA.BR
+ * ProjectClone — Google OAuth 2.0 & Gestão de Créditos Compartilhados do Ecossistema 4U.IA.BR
  * Compatível com KeepAi, FreePDF, WordClone, ExcelClone e todo o ecossistema 4U
  */
 
@@ -18,6 +18,7 @@ const GoogleAuth = {
     token: null,
     credits: 0,
     _initialized: false,
+    pendingAction: null,
 
     init() {
         this.loadStoredSession();
@@ -41,6 +42,9 @@ const GoogleAuth = {
     },
 
     getLang() {
+        if (typeof I18N !== 'undefined' && I18N.currentLang) {
+            return I18N.currentLang;
+        }
         return (typeof currentLang !== 'undefined' ? currentLang : (localStorage.getItem('office_lang') || 'pt'));
     },
 
@@ -175,6 +179,10 @@ const GoogleAuth = {
             this.renderAuthUI();
             this.closeAuthModal();
 
+            if (typeof App !== 'undefined' && App.showToast) {
+                App.showToast(this.getLang() === 'en' ? `Welcome, ${this.currentUser.name}!` : `Bem-vindo(a), ${this.currentUser.name}!`);
+            }
+
             if (this.pendingAction) {
                 const action = this.pendingAction;
                 this.pendingAction = null;
@@ -231,6 +239,10 @@ const GoogleAuth = {
 
         this.renderAuthUI();
         this.closeUserDropdown();
+
+        if (typeof App !== 'undefined' && App.showToast) {
+            App.showToast(this.getLang() === 'en' ? 'Logged out successfully.' : 'Desconectado com sucesso.');
+        }
     },
 
     // 6. CHECAGEM DE STATUS & CRÉDITOS
@@ -248,7 +260,7 @@ const GoogleAuth = {
         return this.credits >= cost;
     },
 
-    async consumeCredit(cost = 1, tool = 'PointClone') {
+    async consumeCredit(cost = 1, tool = 'ProjectClone') {
         if (this.isAdmin()) {
             this.updateCreditsBadge();
             return true;
@@ -282,7 +294,21 @@ const GoogleAuth = {
         }
     },
 
-    // 7. RENDERIZAÇÃO DA INTERFACE (HEADER)
+    // 7. RENDERIZADOR SEGURO DE AVATAR (NUNCA exibe ícone 4U gigante)
+    getAvatarHtml(name, picture, size = 22) {
+        const initial = (name || 'U').trim().charAt(0).toUpperCase();
+        const initialBadge = `<div class="user-avatar-initial" style="width:${size}px; height:${size}px; line-height:${size}px; border-radius:50%; background:linear-gradient(135deg, #107c41, #059669); color:#fff; font-weight:800; font-size:${Math.round(size * 0.48)}px; text-align:center; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">${initial}</div>`;
+
+        // Se for nulo, vazio, gravatar genérico ou tiver referência a "4u", usa a inicial do usuário
+        if (!picture || typeof picture !== 'string' || picture.toLowerCase().includes('4u') || picture.toLowerCase().includes('gravatar.com')) {
+            return initialBadge;
+        }
+
+        // Renderiza com fallback seguro caso a imagem do Google expire ou falhe
+        return `<img src="${picture}" alt="${name}" class="user-avatar-img" style="width:${size}px; height:${size}px; border-radius:50%; object-fit:cover; display:inline-block; flex-shrink:0;" onerror="this.outerHTML='<div class=\\'user-avatar-initial\\' style=\\'width:${size}px; height:${size}px; line-height:${size}px; border-radius:50%; background:linear-gradient(135deg, #107c41, #059669); color:#fff; font-weight:800; font-size:${Math.round(size * 0.48)}px; text-align:center; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;\\'>${initial}</div>'">`;
+    },
+
+    // 8. RENDERIZAÇÃO DA INTERFACE (HEADER)
     renderAuthUI() {
         const container = document.getElementById('googleAuthContainer');
         if (!container) return;
@@ -291,63 +317,72 @@ const GoogleAuth = {
 
         if (!this.isLoggedIn()) {
             container.innerHTML = `
-                <button onclick="GoogleAuth.signIn()" class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white hover:bg-gray-100 text-gray-800 font-bold text-xs shadow-sm border border-gray-300 transition-all cursor-pointer" title="${isEn ? 'Sign in with Google to sync 4U credits' : 'Entrar com Conta Google e sincronizar créditos 4U'}">
-                    <svg viewBox="0 0 24 24" width="13" height="13">
+                <button type="button" onclick="GoogleAuth.signIn()" class="btn-google-login" title="${isEn ? 'Sign in with Google to sync 4U AI credits' : 'Entrar com Conta Google e sincronizar créditos de IA'}">
+                    <svg viewBox="0 0 24 24" width="14" height="14" class="google-svg">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                         <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
                         <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
                     </svg>
-                    <span>${isEn ? 'Google Login' : 'Entrar com Google'}</span>
+                    <span>${isEn ? 'Sign in with Google' : 'Entrar com Google'}</span>
                 </button>
             `;
         } else {
-            const avatar = this.currentUser.picture || 'https://www.gravatar.com/avatar/?d=mp';
+            const avatar = this.currentUser.picture || '';
             const name = this.currentUser.givenName || this.currentUser.name || 'Conta 4U';
             const creditsText = this.isAdmin() ? '∞ VIP' : `${this.credits}`;
 
             container.innerHTML = `
-                <div class="relative flex items-center gap-1.5">
-                    <!-- Badge de Créditos do Ecossistema 4U -->
-                    <button onclick="GoogleAuth.openCreditsModal()" class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-600 dark:text-amber-400 font-extrabold text-xs shadow-sm hover:border-amber-400 transition-all cursor-pointer" title="${isEn ? 'Your credits across the 4U ecosystem' : 'Seus créditos válidos em todo o ecossistema 4U'}">
-                        <span class="text-xs">💎</span>
-                        <span id="creditsCountDisplay">${creditsText}</span>
-                        <span class="text-[9px] uppercase font-bold tracking-wider">${isEn ? 'cr' : 'créd'}</span>
+                <div class="google-auth-user-wrap">
+                    <!-- 1. Badge de Saldo de Créditos IA -->
+                    <button type="button" onclick="GoogleAuth.openCreditsModal('balance')" class="btn-credits-badge" title="${isEn ? 'Your credits balance (Click to manage)' : 'Seus créditos de IA (Clique para ver saldo)'}">
+                        <span class="credits-gem">💎</span>
+                        <span id="creditsCountDisplay" class="credits-num">${creditsText}</span>
+                        <span class="credits-lbl">${isEn ? 'cr' : 'créd'}</span>
                     </button>
 
-                    <!-- Botão Perfil Usuário -->
-                    <button id="userAvatarBtn" onclick="GoogleAuth.toggleUserDropdown()" class="flex items-center gap-1.5 p-0.5 pl-1 pr-2 rounded-full bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:border-[#c43e1c] transition-all cursor-pointer">
-                        <img src="${avatar}" alt="${name}" class="w-5 h-5 rounded-full object-cover">
-                        <span class="text-xs font-semibold max-w-[80px] truncate text-gray-800 dark:text-gray-200">${name}</span>
-                        <i class="fa-solid fa-chevron-down text-[9px] text-gray-400"></i>
+                    <!-- 2. Botão COMPRAR CRÉDITOS DIRETO -->
+                    <button type="button" onclick="GoogleAuth.openCreditsModal('buy')" class="btn-buy-credits" title="${isEn ? 'Buy AI Credits' : 'Comprar Créditos de IA'}">
+                        <span>⚡</span>
+                        <span>${isEn ? 'Buy Credits' : 'Comprar Créditos'}</span>
                     </button>
 
-                    <!-- Dropdown de Usuário -->
-                    <div id="userDropdownMenu" class="hidden absolute right-0 top-9 w-60 bg-white text-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 shadow-2xl z-50 text-left">
-                        <div class="flex items-center gap-2.5 pb-2.5 border-b border-gray-200">
-                            <img src="${avatar}" class="w-8 h-8 rounded-full border border-orange-500/40 object-cover">
-                            <div class="overflow-hidden">
-                                <div class="text-xs font-bold text-gray-900 truncate">${this.currentUser.name}</div>
-                                <div class="text-[10px] text-gray-500 truncate">${this.currentUser.email}</div>
-                                <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded-full bg-orange-500/10 text-[#c43e1c] text-[9px] font-extrabold uppercase">
+                    <!-- 3. Botão Perfil Usuário -->
+                    <button type="button" id="userAvatarBtn" onclick="GoogleAuth.toggleUserDropdown()" class="btn-user-avatar" title="${name}">
+                        ${this.getAvatarHtml(name, avatar, 22)}
+                        <span class="user-display-name">${name}</span>
+                        <i class="fa-solid fa-chevron-down user-chevron"></i>
+                    </button>
+
+                    <!-- 4. Dropdown de Usuário -->
+                    <div id="userDropdownMenu" class="user-dropdown-menu hidden">
+                        <div class="user-dropdown-header">
+                            ${this.getAvatarHtml(name, avatar, 36)}
+                            <div class="user-dropdown-meta">
+                                <div class="user-name-title">${this.currentUser.name || name}</div>
+                                <div class="user-email-subtitle">${this.currentUser.email}</div>
+                                <span class="user-role-badge ${this.isAdmin() ? 'vip' : ''}">
                                     ${this.isAdmin() ? '⭐ Admin VIP' : 'Conta 4U'}
                                 </span>
                             </div>
                         </div>
 
-                        <div class="py-2 space-y-1">
-                            <div class="flex items-center justify-between text-xs px-2 py-1 rounded bg-gray-100">
-                                <span class="text-gray-500">${isEn ? '4U Balance:' : 'Saldo 4U:'}</span>
-                                <span class="font-extrabold text-amber-600">${this.isAdmin() ? '∞ VIP' : `${this.credits} ${isEn ? 'credits' : 'créditos'}`}</span>
+                        <div class="user-dropdown-body">
+                            <div class="user-balance-row">
+                                <span class="balance-lbl">${isEn ? 'AI Credits:' : 'Saldo de Créditos:'}</span>
+                                <span class="balance-val">💎 ${this.isAdmin() ? '∞ VIP' : `${this.credits} ${isEn ? 'credits' : 'créditos'}`}</span>
                             </div>
-                            <a href="../index.php" class="flex items-center gap-2 px-2 py-1.5 rounded text-xs text-gray-700 hover:bg-gray-100 transition-colors">
-                                <i class="fa-solid fa-th-large text-gray-400"></i>
+                            <button type="button" onclick="GoogleAuth.openCreditsModal('buy'); GoogleAuth.closeUserDropdown();" class="user-menu-item highlight">
+                                <span>⚡ ${isEn ? 'Buy / Recharge Credits' : 'Comprar / Recarregar Créditos'}</span>
+                            </button>
+                            <a href="../index.php" class="user-menu-item">
+                                <i class="fa-solid fa-th-large"></i>
                                 <span>${isEn ? 'OfficeClone Suite' : 'Suíte OfficeClone'}</span>
                             </a>
                         </div>
 
-                        <div class="pt-2 border-t border-gray-200">
-                            <button onclick="GoogleAuth.signOut()" class="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 text-xs font-bold transition-all cursor-pointer">
+                        <div class="user-dropdown-footer">
+                            <button type="button" onclick="GoogleAuth.signOut()" class="btn-logout">
                                 <i class="fa-solid fa-arrow-right-from-bracket"></i>
                                 <span>${isEn ? 'Sign Out' : 'Sair da Conta'}</span>
                             </button>
@@ -375,6 +410,10 @@ const GoogleAuth = {
         if (dropdown) dropdown.classList.add('hidden');
     },
 
+    showCreditsDepletedModal() {
+        this.openCreditsModal('insufficient');
+    },
+
     requireAuthForAi(featureName = 'ProjectClone IA', callback = null) {
         if (!this.isLoggedIn()) {
             this.openAuthModal(featureName, callback);
@@ -390,7 +429,7 @@ const GoogleAuth = {
         return true;
     },
 
-    // 8. MODAL DE AVISO: LOGIN GOOGLE OBRIGATÓRIO
+    // 9. MODAL DE AVISO: LOGIN GOOGLE OBRIGATÓRIO
     openAuthModal(featureName = 'ProjectClone IA', onSuccess = null) {
         if (onSuccess) {
             this.pendingAction = onSuccess;
@@ -401,30 +440,34 @@ const GoogleAuth = {
         if (!modal) {
             modal = document.createElement('div');
             modal.id = 'googleAuthPromptModal';
-            modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm select-none';
             document.body.appendChild(modal);
         }
 
         modal.innerHTML = `
-            <div class="bg-white border border-gray-300 rounded-2xl p-6 max-w-md w-full shadow-2xl relative text-left">
-                <button onclick="GoogleAuth.closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 font-bold text-sm">✕</button>
-                <div class="w-12 h-12 rounded-2xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center text-xl mb-3">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <div>
+                <button onclick="GoogleAuth.closeAuthModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 1.1rem; color: #9ca3af; cursor: pointer; font-weight: bold;">✕</button>
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(16, 124, 65, 0.12); color: #107c41; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 12px;">
+                    🪄
                 </div>
-                <h3 class="text-base font-extrabold text-gray-900 mb-1">
+                <h3 style="font-size: 1.1rem; font-weight: 800; color: #111827; margin: 0 0 6px 0;">
                     ${isEn ? 'Sign in with Google' : 'Faça login com sua conta Google'}
                 </h3>
-                <p class="text-xs text-gray-600 mb-4">
+                <p style="font-size: 0.82rem; color: #4b5563; line-height: 1.45; margin: 0 0 16px 0;">
                     ${isEn 
                         ? `Connect your Google account to use <strong>${featureName}</strong> and sync your unified 4U credits. New accounts get <strong>10 free credits</strong> to use in any 4U app!` 
                         : `Conecte sua conta Google para utilizar o recurso <strong>${featureName}</strong> e sincronizar seus créditos unificados. Novos usuários ganham <strong>10 créditos gratuitos</strong> para usar em qualquer app da 4U!`}
                 </p>
-                <div class="space-y-2">
-                    <button onclick="GoogleAuth.signIn()" class="w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-lg transition-all cursor-pointer">
-                        <i class="fa-brands fa-google text-sm"></i>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button type="button" onclick="GoogleAuth.signIn()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 16px; background: #107c41; color: #ffffff; border-radius: 8px; font-size: 0.85rem; font-weight: 700; border: none; cursor: pointer; box-shadow: 0 2px 6px rgba(16, 124, 65, 0.3);">
+                        <svg viewBox="0 0 24 24" width="18" height="18">
+                            <path fill="#ffffff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#ffffff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#ffffff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#ffffff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
                         <span>${isEn ? 'Sign in with Google' : 'Entrar com Conta Google'}</span>
                     </button>
-                    <button onclick="GoogleAuth.closeAuthModal()" class="w-full py-2 text-center text-xs text-gray-500 hover:text-gray-700">
+                    <button type="button" onclick="GoogleAuth.closeAuthModal()" style="width: 100%; padding: 8px; text-align: center; font-size: 0.8rem; color: #6b7280; background: none; border: none; cursor: pointer;">
                         ${isEn ? 'Cancel' : 'Cancelar'}
                     </button>
                 </div>
@@ -438,15 +481,14 @@ const GoogleAuth = {
         if (modal) modal.classList.add('hidden');
     },
 
-    // 9. MODAL DE CRÉDITOS & RECARGA
-    openCreditsModal(type = 'info') {
+    // 10. MODAL DE CRÉDITOS & COMPRA
+    openCreditsModal(type = 'balance') {
         let modal = document.getElementById('creditsInfoModal');
         const isEn = this.getLang() === 'en';
 
         if (!modal) {
             modal = document.createElement('div');
             modal.id = 'creditsInfoModal';
-            modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm select-none';
             document.body.appendChild(modal);
         }
 
@@ -454,39 +496,59 @@ const GoogleAuth = {
         const creditsText = this.isAdmin() ? '∞ VIP' : `${this.credits}`;
 
         modal.innerHTML = `
-            <div class="bg-white border border-gray-300 rounded-2xl p-6 max-w-md w-full shadow-2xl relative text-left">
-                <button onclick="GoogleAuth.closeCreditsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 font-bold text-sm">✕</button>
+            <div>
+                <button onclick="GoogleAuth.closeCreditsModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 1.1rem; color: #9ca3af; cursor: pointer; font-weight: bold;">✕</button>
                 
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-12 h-12 rounded-2xl ${isInsuf ? 'bg-rose-500/10 text-rose-500' : 'bg-amber-500/10 text-amber-500'} flex items-center justify-center text-xl">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: ${isInsuf ? 'rgba(239, 68, 68, 0.12)' : 'rgba(245, 158, 11, 0.15)'}; color: ${isInsuf ? '#dc2626' : '#d97706'}; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
                         ${isInsuf ? '⚠️' : '💎'}
                     </div>
                     <div>
-                        <h3 class="text-base font-extrabold text-gray-900">
-                            ${isInsuf ? (isEn ? 'Insufficient Credits' : 'Créditos Insuficientes') : (isEn ? '4U Ecosystem Credits' : 'Créditos do Ecossistema 4U')}
+                        <h3 style="font-size: 1.1rem; font-weight: 800; color: #111827; margin: 0;">
+                            ${isInsuf ? (isEn ? 'Insufficient AI Credits' : 'Créditos de IA Insuficientes') : (isEn ? '4U Ecosystem Credits' : 'Créditos de Inteligência Artificial')}
                         </h3>
-                        <p class="text-xs text-gray-500">
-                            ${isEn ? 'Valid across PointClone, WordClone, ExcelClone, FreePDF, KeepAi and more' : 'Válidos no PointClone, WordClone, ExcelClone, FreePDF, KeepAi e todo o 4U'}
+                        <p style="font-size: 0.75rem; color: #6b7280; margin: 2px 0 0 0;">
+                            ${isEn ? 'Unified balance for ProjectClone, ExcelClone, WordClone, FreePDF, KeepAi' : 'Saldo unificado para ProjectClone, ExcelClone, WordClone, FreePDF e KeepAi'}
                         </p>
                     </div>
                 </div>
 
-                <div class="bg-gray-100 p-3.5 rounded-xl border border-gray-200 mb-4 flex items-center justify-between">
-                    <span class="text-xs text-gray-600">${isEn ? 'Current Balance:' : 'Seu Saldo Atual:'}</span>
-                    <span class="text-sm font-extrabold text-amber-600">${creditsText} ${isEn ? 'credits' : 'créditos'}</span>
+                <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+                    <span style="font-size: 0.8rem; color: #4b5563; font-weight: 600;">${isEn ? 'Current Balance:' : 'Seu Saldo Atual:'}</span>
+                    <span style="font-size: 1rem; font-weight: 800; color: #d97706;">💎 ${creditsText} ${isEn ? 'credits' : 'créditos'}</span>
                 </div>
 
-                <p class="text-xs text-gray-600 mb-4 leading-relaxed">
-                    ${isEn 
-                        ? 'Unified credits can be used in any application within the 4U.IA.BR ecosystem.' 
-                        : 'Os créditos unificados são compartilhados e válidos em todos os aplicativos do ecossistema 4U.IA.BR.'}
-                </p>
+                <div style="margin-bottom: 16px;">
+                    <div style="font-size: 0.78rem; font-weight: 700; color: #374151; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.03em;">
+                        ${isEn ? 'Available Credit Packages:' : 'Pacotes de Créditos Disponíveis:'}
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.8rem;">
+                            <span style="font-weight: 700; color: #111827;">💎 10 Créditos</span>
+                            <span style="color: #059669; font-weight: 800;">R$ 4,90 <span style="font-size: 0.7rem; color: #6b7280; font-weight: 500;">(R$ 0,49/un)</span></span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; font-size: 0.8rem;">
+                            <div>
+                                <span style="font-weight: 700; color: #92400e;">💎 50 Créditos</span>
+                                <span style="margin-left: 6px; font-size: 0.65rem; background: #f59e0b; color: #fff; padding: 1px 5px; border-radius: 9999px; font-weight: 700;">MAIS POPULAR</span>
+                            </div>
+                            <span style="color: #b45309; font-weight: 800;">R$ 19,90 <span style="font-size: 0.7rem; color: #78350f; font-weight: 500;">(R$ 0,39/un)</span></span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.8rem;">
+                            <div>
+                                <span style="font-weight: 700; color: #111827;">💎 100 Créditos</span>
+                                <span style="margin-left: 6px; font-size: 0.65rem; background: #107c41; color: #fff; padding: 1px 5px; border-radius: 9999px; font-weight: 700;">MELHOR VALOR</span>
+                            </div>
+                            <span style="color: #059669; font-weight: 800;">R$ 34,90 <span style="font-size: 0.7rem; color: #6b7280; font-weight: 500;">(R$ 0,34/un)</span></span>
+                        </div>
+                    </div>
+                </div>
 
-                <div class="space-y-2">
-                    <a href="https://4u.ia.br/app/office/keepai/" target="_blank" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white rounded-xl text-xs font-bold shadow-md transition-all">
-                        <span>💎 ${isEn ? 'Get More Credits (KeepAi)' : 'Adquirir Mais Créditos (KeepAi)'}</span>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <a href="https://4u.ia.br/app/office/keepai/" target="_blank" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; border-radius: 8px; font-size: 0.85rem; font-weight: 800; text-decoration: none; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35); cursor: pointer; text-align: center;">
+                        <span>💳 ${isEn ? 'Buy Credits (KeepAi / PIX / Card)' : 'Comprar Créditos (PIX / Cartão)'}</span>
                     </a>
-                    <button onclick="GoogleAuth.closeCreditsModal()" class="w-full py-2 text-center text-xs text-gray-500 hover:text-gray-700">
+                    <button type="button" onclick="GoogleAuth.closeCreditsModal()" style="width: 100%; padding: 8px; text-align: center; font-size: 0.8rem; color: #6b7280; background: none; border: none; cursor: pointer;">
                         ${isEn ? 'Close' : 'Fechar'}
                     </button>
                 </div>

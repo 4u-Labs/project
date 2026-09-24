@@ -11,6 +11,10 @@ const AIAssistant = {
 
   init() {
     this.bindEvents();
+    const dateInput = document.getElementById('aiStartDate');
+    if (dateInput && !dateInput.value) {
+      dateInput.value = ProjectEngine.formatDate(new Date());
+    }
   },
 
   bindEvents() {
@@ -85,6 +89,14 @@ const AIAssistant = {
     }
   },
 
+  getAiHeaders() {
+    const headers = { 'Content-Type': 'application/json' };
+    if (window.GoogleAuth && GoogleAuth.token) {
+      headers['Authorization'] = `Bearer ${GoogleAuth.token}`;
+    }
+    return headers;
+  },
+
   // 1. Gerar Cronograma Completo por Prompt
   async generateProject(promptText, startDate, currency) {
     if (window.GoogleAuth && !GoogleAuth.isLoggedIn()) {
@@ -107,7 +119,7 @@ const AIAssistant = {
     try {
       const response = await fetch('api/ai.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: this.getAiHeaders(),
         body: JSON.stringify({
           action: 'generate',
           prompt: promptText,
@@ -156,7 +168,7 @@ const AIAssistant = {
     try {
       const response = await fetch('api/ai.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: this.getAiHeaders(),
         body: JSON.stringify({
           action: 'audit',
           project: State.project,
@@ -253,7 +265,7 @@ const AIAssistant = {
     try {
       const response = await fetch('api/ai.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: this.getAiHeaders(),
         body: JSON.stringify({
           action: 'report',
           project: State.project,
@@ -335,7 +347,7 @@ const AIAssistant = {
     try {
       const response = await fetch('api/ai.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: this.getAiHeaders(),
         body: JSON.stringify({
           action: 'optimize',
           tasks: State.tasks,

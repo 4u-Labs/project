@@ -14,8 +14,11 @@ $assetVer = filemtime(__DIR__ . '/style.css') ?: time();
   <!-- PWA & Ícones -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="icon.svg">
-  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css?v=<?= $assetVer ?>">
   
   <!-- Google Identity Services (OAuth 2.0) -->
@@ -61,6 +64,9 @@ $assetVer = filemtime(__DIR__ . '/style.css') ?: time();
 
       <!-- Alternador Tema Claro / Escuro -->
       <button class="btn-header-icon" id="btnThemeToggle" title="Alternar Tema Claro/Escuro">☀️</button>
+
+      <!-- Google Auth & Créditos 4U -->
+      <div id="googleAuthContainer" class="google-auth-container"></div>
     </div>
   </header>
 
@@ -632,7 +638,7 @@ $assetVer = filemtime(__DIR__ . '/style.css') ?: time();
           <div class="form-row">
             <div class="form-group">
               <label>Data de Início Prevista</label>
-              <input type="date" id="aiStartDate">
+              <input type="date" id="aiStartDate" value="<?= date('Y-m-d') ?>">
             </div>
             <div class="form-group">
               <label>Moeda de Orçamento</label>

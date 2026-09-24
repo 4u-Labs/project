@@ -161,11 +161,14 @@ function handleGenerateProject($data, $apiKey) {
 
     $startDate = !empty($data['startDate']) ? $data['startDate'] : date('Y-m-d');
     $currency = !empty($data['currency']) ? $data['currency'] : 'BRL';
+    $startYear = (int)substr($startDate, 0, 4);
+    $maxYear = $startYear + 2;
 
     $systemPrompt = "Você é um Especialista Sênior em Gerenciamento de Projetos e Engenharia de Cronogramas certificado PMP/PMI.
 Sua missão é criar uma Estrutura Analítica do Projeto (EAP / WBS) completa, profissional e realista para o software ProjectClone (compatível com MS Project).
 
 A data de início do projeto deve ser: {$startDate}.
+Ano base do cronograma: {$startYear} (Todas as datas devem ficar estritamente entre {$startYear} e {$maxYear}).
 A moeda é: {$currency}.
 
 Você DEVE responder EXCLUSIVAMENTE em formato JSON rigoroso com a seguinte estrutura:
@@ -228,9 +231,12 @@ Regras Cruciais:
 2. Cada fase deve conter subtarefas lógicas e pelo menos 1 marco (milestone com duration: 0).
 3. Predecessoras devem usar formato MS Project (Ex: '2FS', '3SS', '4FS+2'). Não crie dependências circulares.
 4. Distribua prazos em dias úteis plausíveis para o escopo informado pelo usuário.
-5. Crie entre 3 e 6 fases principais, somando de 12 a 25 tarefas detalhadas no total para dar um cronograma rico e realista.
-6. Associe os resourceIds correspondentes a cada atividade.
-7. Retorne APENAS o JSON válido, sem comentários ou texto adicional.";
+5. Coerência Rigorosa de Anos e Datas:
+   - Todas as datas ('start' e 'end') devem ser calculadas sequencialmente a partir de {$startDate} respeitando a duração em dias úteis de cada atividade.
+   - O ano deve pertencer estritamente ao período do projeto ({$startYear} a {$maxYear}). NUNCA gere anos incorretos ou no futuro distante como 2227.
+6. Crie entre 3 e 6 fases principais, somando de 12 a 25 tarefas detalhadas no total para dar um cronograma rico e realista.
+7. Associe os resourceIds correspondentes a cada atividade.
+8. Retorne APENAS o JSON válido, sem comentários ou texto adicional.";
 
     $userPrompt = "Projeto Solicitado pelo Usuário: " . $prompt;
 

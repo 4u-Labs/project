@@ -119,7 +119,7 @@ const DashboardView = {
             <div class="kpi-icon">💰</div>
             <div class="kpi-content">
               <span class="kpi-title">${I18N.t('kpiTotalCost')}</span>
-              <span class="kpi-value">${costFmt}</span>
+              <span class="kpi-value cost-val" title="${costFmt}">${costFmt}</span>
               <div class="cost-breakdown-sub">
                 <span class="kpi-sub-highlight" title="Valor Agregado (Progresso Físico x Custo Orçado)">Realizado: <strong>${earnedCostFmt}</strong> (${financialPct}%)</span>
                 <span class="kpi-sub-muted">Saldo: ${balanceCostFmt} • ${State.resources.length} recursos ➔</span>
