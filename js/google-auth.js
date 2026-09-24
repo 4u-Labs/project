@@ -348,39 +348,35 @@ const GoogleAuth = {
         } else {
             const avatar = this.currentUser.picture || '';
             const name = this.currentUser.givenName || this.currentUser.name || 'Conta 4U';
-            const creditsText = this.isAdmin() ? '∞ VIP' : `${this.credits}`;
+            const isAdmin = this.isAdmin();
+            const creditsText = isAdmin ? '∞ VIP' : `${this.credits}`;
 
             container.innerHTML = `
                 <div class="google-auth-user-wrap" style="position:relative; display:flex; align-items:center; gap:6px;">
-                    <!-- 1. Badge de Saldo de Créditos IA -->
+                    <!-- Badge Unificado de Créditos IA -->
                     <button type="button" onclick="GoogleAuth.openCreditsModal('balance')" class="btn-credits-badge" style="display:inline-flex; align-items:center; gap:5px; padding:4px 12px; height:30px; box-sizing:border-box; background:rgba(245,158,11,0.2); border:1px solid rgba(245,158,11,0.5); color:#fef08a; font-size:0.8rem; font-weight:800; border-radius:20px; cursor:pointer; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,0.15); font-family:inherit; line-height:1.2;" title="${isEn ? 'Your credits balance (Click to manage)' : 'Seus créditos de IA (Clique para ver saldo)'}">
                         <span class="credits-gem" style="font-size:0.85rem; line-height:1;">💎</span>
                         <span id="creditsCountDisplay" class="credits-num">${creditsText}</span>
-                        <span class="credits-lbl" style="font-size:0.68rem; text-transform:uppercase; font-weight:700; opacity:0.9;">${isEn ? 'cr' : 'créd'}</span>
+                        ${!isAdmin ? `<span class="credits-lbl" style="font-size:0.68rem; text-transform:uppercase; font-weight:700; opacity:0.9;">${isEn ? 'cr' : 'créd'}</span>` : ''}
+                        ${!isAdmin ? `<span style="display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px; border-radius:50%; background:rgba(245,158,11,0.4); color:#fff; font-size:10px; font-weight:900; line-height:1; margin-left:2px;" title="${isEn ? 'Buy AI Credits' : 'Adquirir créditos'}">+</span>` : ''}
                     </button>
 
-                    <!-- 2. Botão COMPRAR CRÉDITOS DIRETO -->
-                    <button type="button" onclick="GoogleAuth.openCreditsModal('buy')" class="btn-buy-credits" style="display:inline-flex; align-items:center; gap:5px; padding:4px 12px; height:30px; box-sizing:border-box; background:linear-gradient(135deg, #f59e0b, #d97706); color:#ffffff; font-size:0.78rem; font-weight:800; border-radius:20px; border:1px solid rgba(255,255,255,0.4); box-shadow:0 1px 4px rgba(0,0,0,0.2); cursor:pointer; white-space:nowrap; font-family:inherit; line-height:1.2;" title="${isEn ? 'Buy AI Credits' : 'Comprar Créditos de IA'}">
-                        <span>⚡</span>
-                        <span>${isEn ? 'Buy Credits' : 'Comprar Créditos'}</span>
-                    </button>
-
-                    <!-- 3. Botão Perfil Usuário -->
+                    <!-- Botão Perfil Usuário -->
                     <button type="button" id="userAvatarBtn" onclick="GoogleAuth.toggleUserDropdown()" class="btn-user-avatar" style="display:inline-flex; align-items:center; gap:6px; padding:3px 10px 3px 4px; height:30px; box-sizing:border-box; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); border-radius:20px; color:#ffffff; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; line-height:1.2; white-space:nowrap;" title="${name}">
                         ${this.getAvatarHtml(name, avatar, 22)}
                         <span class="user-display-name" style="max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${name}</span>
                         <i class="fa-solid fa-chevron-down user-chevron" style="font-size:8px; opacity:0.7;"></i>
                     </button>
 
-                    <!-- 4. Dropdown de Usuário -->
+                    <!-- Dropdown de Usuário -->
                     <div id="userDropdownMenu" class="user-dropdown-menu hidden">
                         <div class="user-dropdown-header">
                             ${this.getAvatarHtml(name, avatar, 36)}
                             <div class="user-dropdown-meta">
                                 <div class="user-name-title">${this.currentUser.name || name}</div>
                                 <div class="user-email-subtitle">${this.currentUser.email}</div>
-                                <span class="user-role-badge ${this.isAdmin() ? 'vip' : ''}">
-                                    ${this.isAdmin() ? '⭐ Admin VIP' : 'Conta 4U'}
+                                <span class="user-role-badge ${isAdmin ? 'vip' : ''}">
+                                    ${isAdmin ? '⭐ Admin VIP' : 'Conta 4U'}
                                 </span>
                             </div>
                         </div>
@@ -388,11 +384,12 @@ const GoogleAuth = {
                         <div class="user-dropdown-body">
                             <div class="user-balance-row">
                                 <span class="balance-lbl">${isEn ? 'AI Credits:' : 'Saldo de Créditos:'}</span>
-                                <span class="balance-val">💎 ${this.isAdmin() ? '∞ VIP' : `${this.credits} ${isEn ? 'credits' : 'créditos'}`}</span>
+                                <span class="balance-val">💎 ${isAdmin ? '∞ VIP' : `${this.credits} ${isEn ? 'credits' : 'créditos'}`}</span>
                             </div>
+                            ${!isAdmin ? `
                             <button type="button" onclick="GoogleAuth.openCreditsModal('buy'); GoogleAuth.closeUserDropdown();" class="user-menu-item highlight">
                                 <span>⚡ ${isEn ? 'Buy / Recharge Credits' : 'Comprar / Recarregar Créditos'}</span>
-                            </button>
+                            </button>` : ''}
                             <a href="../index.php" class="user-menu-item">
                                 <i class="fa-solid fa-th-large"></i>
                                 <span>${isEn ? 'OfficeClone Suite' : 'Suíte OfficeClone'}</span>
