@@ -78,6 +78,11 @@ if (php_sapi_name() !== 'cli' || basename(__FILE__) === basename($_SERVER['SCRIP
  * Função para carregar chave da OpenAI do ambiente ou arquivo .env local
  */
 function get_project_env_key() {
+    $cfgPath = __DIR__ . '/config.php';
+    if (file_exists($cfgPath)) {
+        require_once $cfgPath;
+        if (defined('OPENAI_API_KEY') && !empty(OPENAI_API_KEY)) return OPENAI_API_KEY;
+    }
     $envPath = __DIR__ . '/../.env';
     if (file_exists($envPath)) {
         $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);

@@ -2,4 +2,5 @@
 *.log
 scratch/
 .env
+api/config.php
 data/*.db
