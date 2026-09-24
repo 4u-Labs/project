@@ -257,6 +257,10 @@ const WBSGrid = {
 
     // Reordenação de Linhas por Arraste (Drag & Drop)
     this.container.addEventListener('dragstart', (e) => {
+      if (this.isReadOnly || (window.CloudShare && window.CloudShare.isReadOnly)) {
+        e.preventDefault();
+        return;
+      }
       const row = e.target.closest('.wbs-row');
       if (!row) return;
       this.draggedTaskId = parseInt(row.getAttribute('data-id'), 10);
@@ -352,6 +356,7 @@ const WBSGrid = {
   },
 
   startInlineEdit(el, task, field) {
+    if (this.isReadOnly || (window.CloudShare && window.CloudShare.isReadOnly)) return;
     let currentVal = task[field] !== undefined ? task[field] : '';
     let inputType = 'text';
 

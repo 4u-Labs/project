@@ -34,6 +34,7 @@
       <button class="btn-header-icon" data-action="undo" title="Desfazer (Ctrl+Z)">↩</button>
       <button class="btn-header-icon" data-action="redo" title="Refazer (Ctrl+Y)">↪</button>
       <button class="btn-header-icon" data-action="saveProject" title="Salvar Projeto (Ctrl+S)">💾</button>
+      <button class="btn-header-share" data-action="openShare" title="Compartilhar cronograma em nuvem via link público ou colaborativo">☁️ Compartilhar</button>
 
       <!-- Idioma PT / EN -->
       <div class="lang-btn-group">
@@ -79,6 +80,9 @@
         </button>
         <button class="view-tab-btn" data-view="calendar">
           <span>📅</span> <span data-i18n="viewCalendar">Calendário</span>
+        </button>
+        <button class="view-tab-btn" data-view="portfolio">
+          <span>📁</span> <span data-i18n="viewPortfolio">Portfólio</span>
         </button>
       </div>
     </div>
@@ -181,6 +185,14 @@
           <button class="ribbon-btn" data-action="newProject">
             <span class="r-icon">📄</span>
             <span class="r-text" data-i18n="actNew">Novo</span>
+          </button>
+          <button class="ribbon-btn" data-action="openPortfolio" title="Gerenciar múltiplos projetos salvos e visão consolidada">
+            <span class="r-icon">📁</span>
+            <span class="r-text">Portfólio</span>
+          </button>
+          <button class="ribbon-btn" data-action="openShare" title="Compartilhar cronograma em nuvem com link público ou somente leitura">
+            <span class="r-icon">☁️</span>
+            <span class="r-text">Compartilhar</span>
           </button>
           <button class="ribbon-btn" data-action="openTemplates">
             <span class="r-icon">🌟</span>
@@ -361,6 +373,9 @@
 
     <!-- Visualização 6: Calendário Mensal -->
     <div class="calendar-view-container" id="calendarContainer" style="display: none;"></div>
+
+    <!-- Visualização 7: Portfólio & Gerenciamento Multi-Projetos -->
+    <div class="portfolio-view-container" id="portfolioContainer" style="display: none;"></div>
   </main>
 
   <!-- Inputs Ocultos de Arquivo -->
@@ -746,11 +761,79 @@
     </div>
   </div>
 
+  <!-- Modal: Compartilhamento em Nuvem & Link Público -->
+  <div class="modal-overlay" id="modalCloudShare">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title">☁️ Compartilhar Cronograma na Nuvem</h3>
+        <button type="button" class="btn-modal-close" id="btnCloseShareModal" aria-label="Fechar">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="share-modal-proj-card">
+          <div class="s-proj-icon">📁</div>
+          <div class="s-proj-info">
+            <h4 id="shareModalProjTitle">Nome do Projeto</h4>
+            <span id="shareModalProjMeta">0 tarefas • Início: -</span>
+          </div>
+        </div>
+
+        <div class="share-permission-selector">
+          <label class="share-perm-option">
+            <input type="radio" name="sharePermission" value="readonly" checked>
+            <div class="perm-card">
+              <div class="perm-title">🔒 Somente Leitura (Recomendado)</div>
+              <div class="perm-desc">O cliente visualiza o Gantt, Kanban, Curva S e relatórios sem permissão de alterar prazos ou tarefas.</div>
+            </div>
+          </label>
+          <label class="share-perm-option">
+            <input type="radio" name="sharePermission" value="editable">
+            <div class="perm-card">
+              <div class="perm-title">✏️ Editável / Colaborativo</div>
+              <div class="perm-desc">Quem receber o link poderá visualizar e continuar editando o cronograma diretamente.</div>
+            </div>
+          </label>
+        </div>
+
+        <button type="button" class="btn-generate-share-link" id="btnGenerateShareLink">
+          <span>⚡</span> <span>Gerar Link de Compartilhamento</span>
+        </button>
+
+        <!-- Área de Resultado do Link Gerado -->
+        <div class="share-result-box" id="shareResultBox" style="display: none;">
+          <div class="share-link-row">
+            <input type="text" id="inputShareUrl" readonly>
+            <button type="button" class="btn-copy-link" id="btnCopyShareUrl">
+              <span>📋</span> <span>Copiar</span>
+            </button>
+          </div>
+
+          <div class="share-quick-channels">
+            <a href="#" target="_blank" class="btn-share-channel whatsapp" id="btnShareWhatsApp">
+              <span>💬</span> <span>Enviar no WhatsApp</span>
+            </a>
+          </div>
+
+          <div class="share-qr-wrap">
+            <div class="qr-box">
+              <img id="imgShareQrCode" alt="QR Code do Cronograma" width="130" height="130">
+            </div>
+            <span class="qr-hint">Escaneie com a câmera do celular para abrir o cronograma instantaneamente</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary btn-modal-close" id="btnCloseShareModalFooter">Fechar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts da Aplicação em Ordem de Dependência -->
   <script src="js/i18n.js"></script>
   <script src="js/engine.js"></script>
   <script src="js/state.js"></script>
   <script src="js/templates.js"></script>
+  <script src="js/portfolio.js"></script>
+  <script src="js/cloud-share.js"></script>
   <script src="js/wbs-grid.js"></script>
   <script src="js/gantt.js"></script>
   <script src="js/kanban.js"></script>

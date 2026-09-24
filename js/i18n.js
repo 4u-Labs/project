@@ -55,6 +55,7 @@ const I18N = {
       viewResources: 'Folha de Recursos',
       viewDashboard: 'Painel & KPIs',
       viewCalendar: 'Calendário',
+      viewPortfolio: 'Portfólio',
 
       // Zoom Options
       zoomDays: 'Dias',
@@ -213,6 +214,7 @@ const I18N = {
       viewResources: 'Resource Sheet',
       viewDashboard: 'Dashboard & KPIs',
       viewCalendar: 'Calendar',
+      viewPortfolio: 'Portfolio',
 
       // Zoom Options
       zoomDays: 'Days',

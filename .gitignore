@@ -4,3 +4,4 @@ scratch/
 .env
 api/config.php
 data/*.db
+data/shares/*.json

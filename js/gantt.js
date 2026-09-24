@@ -557,9 +557,12 @@ const GanttChart = {
 
     // Seleção de barra e início de Drag & Drop
     this.container.addEventListener('mousedown', (e) => {
+      const isRO = this.isReadOnly || (window.CloudShare && window.CloudShare.isReadOnly);
+
       // Conexão de dependência via pino
       const pin = e.target.closest('.gantt-link-pin');
       if (pin) {
+        if (isRO) return;
         e.stopPropagation();
         e.preventDefault();
         const fromId = parseInt(pin.getAttribute('data-id'), 10);
@@ -570,6 +573,7 @@ const GanttChart = {
       // Redimensionamento pelas alças
       const handle = e.target.closest('.gantt-handle');
       if (handle) {
+        if (isRO) return;
         e.stopPropagation();
         e.preventDefault();
         const id = parseInt(handle.getAttribute('data-id'), 10);
@@ -584,7 +588,7 @@ const GanttChart = {
         const id = parseInt(bar.getAttribute('data-id'), 10);
         State.selectTask(id);
 
-        if (!e.target.classList.contains('inside-label')) {
+        if (!isRO && !e.target.classList.contains('inside-label')) {
           e.preventDefault();
           this.startDrag(id, 'move', e.clientX);
         }

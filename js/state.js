@@ -445,7 +445,7 @@ const State = {
   },
 
   setView(view) {
-    if (['gantt', 'kanban', 'resources', 'dashboard', 'calendar', 'curvaS'].includes(view)) {
+    if (['gantt', 'kanban', 'resources', 'dashboard', 'calendar', 'curvaS', 'portfolio'].includes(view)) {
       this.project.view = view;
       this.eventBus.emit('viewChanged', view);
     }

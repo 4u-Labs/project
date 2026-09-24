@@ -18,6 +18,8 @@ const App = {
     DashboardView.init('dashboardContainer');
     CalendarView.init('calendarContainer');
     if (window.CurvaSEvaView) window.CurvaSEvaView.init('curvaSContainer');
+    if (window.PortfolioManager) window.PortfolioManager.init('portfolioContainer');
+    if (window.CloudShare) window.CloudShare.init();
     if (window.AIAssistant) window.AIAssistant.init();
 
     // 3. Vincular Eventos Globais, Menus e Modais
@@ -127,6 +129,12 @@ const App = {
         break;
       case 'exportJson':
         ProjectIO.exportJson();
+        break;
+      case 'openPortfolio':
+        this.switchView('portfolio');
+        break;
+      case 'openShare':
+        if (window.CloudShare) window.CloudShare.openModal();
         break;
       case 'openTemplates':
         this.openModal('modalTemplates');
@@ -274,6 +282,7 @@ const App = {
     const dashboardView = document.getElementById('dashboardContainer');
     const calendarView = document.getElementById('calendarContainer');
     const curvaSView = document.getElementById('curvaSContainer');
+    const portfolioView = document.getElementById('portfolioContainer');
 
     splitView.style.display = 'none';
     kanbanView.style.display = 'none';
@@ -281,6 +290,7 @@ const App = {
     dashboardView.style.display = 'none';
     calendarView.style.display = 'none';
     if (curvaSView) curvaSView.style.display = 'none';
+    if (portfolioView) portfolioView.style.display = 'none';
 
     if (viewName === 'gantt') {
       splitView.style.display = 'flex';
@@ -302,6 +312,11 @@ const App = {
       if (curvaSView) {
         curvaSView.style.display = 'block';
         CurvaSEvaView.render();
+      }
+    } else if (viewName === 'portfolio') {
+      if (portfolioView) {
+        portfolioView.style.display = 'block';
+        if (window.PortfolioManager) PortfolioManager.render();
       }
     }
   },
