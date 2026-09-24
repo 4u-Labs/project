@@ -132,7 +132,7 @@ const WBSGrid = {
         <tr class="wbs-row ${isSelected ? 'selected' : ''} ${task.isSummary ? 'wbs-summary-row' : ''} ${isCritical ? 'critical-row' : ''}" 
             data-id="${task.id}" style="height: ${this.rowHeight}px;">
           <td class="col-indicator" title="${statusTitle}">${statusIcon}</td>
-          <td class="col-id">${task.id}</td>
+          <td class="col-id" draggable="true" title="Arraste pelo número para reordenar tarefa"><span class="drag-grip">⠿</span> ${task.id}</td>
           <td class="col-wbs">${task.wbs || ''}</td>
           <td class="col-name" style="padding-left: ${8 + indentPx}px;">
             ${toggleIcon}
@@ -253,6 +253,101 @@ const WBSGrid = {
           window.GanttChart.bodyWrap.scrollTop = wrap.scrollTop;
         }
       });
+    }
+
+    // Reordenação de Linhas por Arraste (Drag & Drop)
+    this.container.addEventListener('dragstart', (e) => {
+      const row = e.target.closest('.wbs-row');
+      if (!row) return;
+      this.draggedTaskId = parseInt(row.getAttribute('data-id'), 10);
+      row.classList.add('wbs-row-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(this.draggedTaskId));
+    });
+
+    this.container.addEventListener('dragover', (e) => {
+      const row = e.target.closest('.wbs-row');
+      if (!row || !this.draggedTaskId) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+
+      const rect = row.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (e.clientY < midY) {
+        row.classList.add('drag-over-top');
+        row.classList.remove('drag-over-bottom');
+      } else {
+        row.classList.add('drag-over-bottom');
+        row.classList.remove('drag-over-top');
+      }
+    });
+
+    this.container.addEventListener('dragleave', (e) => {
+      const row = e.target.closest('.wbs-row');
+      if (row) {
+        row.classList.remove('drag-over-top', 'drag-over-bottom');
+      }
+    });
+
+    this.container.addEventListener('dragend', () => {
+      this.draggedTaskId = null;
+      document.querySelectorAll('.wbs-row').forEach(r => {
+        r.classList.remove('wbs-row-dragging', 'drag-over-top', 'drag-over-bottom');
+      });
+    });
+
+    this.container.addEventListener('drop', (e) => {
+      const row = e.target.closest('.wbs-row');
+      if (!row || !this.draggedTaskId) return;
+      e.preventDefault();
+
+      const targetId = parseInt(row.getAttribute('data-id'), 10);
+      const sourceId = this.draggedTaskId;
+      row.classList.remove('drag-over-top', 'drag-over-bottom');
+
+      if (sourceId && targetId && sourceId !== targetId) {
+        const rect = row.getBoundingClientRect();
+        const isAbove = e.clientY < (rect.top + rect.height / 2);
+        this.reorderTasks(sourceId, targetId, isAbove);
+      }
+      this.draggedTaskId = null;
+    });
+  },
+
+  reorderTasks(sourceId, targetId, isAbove) {
+    const sourceIdx = State.tasks.findIndex(t => t.id === sourceId);
+    const targetIdx = State.tasks.findIndex(t => t.id === targetId);
+    if (sourceIdx === -1 || targetIdx === -1) return;
+
+    const task = State.tasks[sourceIdx];
+    State.pushHistory();
+
+    // Remove da posição atual
+    State.tasks.splice(sourceIdx, 1);
+
+    // Encontra índice atualizado do alvo
+    let newTargetIdx = State.tasks.findIndex(t => t.id === targetId);
+    let insertIdx = isAbove ? newTargetIdx : newTargetIdx + 1;
+    State.tasks.splice(insertIdx, 0, task);
+
+    // Ajusta nível hierárquico coerente com os vizinhos
+    const currentIdx = State.tasks.indexOf(task);
+    const prevTask = State.tasks[currentIdx - 1];
+    if (prevTask) {
+      if (prevTask.isSummary && isAbove) {
+        task.level = prevTask.level;
+      } else if (prevTask.isSummary && !isAbove) {
+        task.level = prevTask.level + 1;
+      } else {
+        task.level = prevTask.level;
+      }
+    } else {
+      task.level = 0;
+    }
+
+    State.recalculateAndSave();
+    if (window.App && window.App.showToast) {
+      window.App.showToast(`Tarefa "${task.name}" reordenada.`);
     }
   },
 

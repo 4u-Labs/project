@@ -216,6 +216,245 @@ const ProjectIO = {
     this.downloadFile(csv, `${this.slugify(State.project.name)}.csv`, 'text/csv;charset=utf-8;');
   },
 
+  // 6. Exportar Imagem PNG de Alta Resolução (300 DPI / 2x Retina)
+  exportHighResPng() {
+    const tasks = State.tasks || [];
+    if (!tasks.length) {
+      if (window.App) window.App.showToast('Nenhuma tarefa para exportar.');
+      return;
+    }
+
+    const rowH = 34;
+    const headerH = 100;
+    const wbsW = 620;
+
+    let minD = new Date();
+    let maxD = new Date();
+    maxD.setDate(maxD.getDate() + 30);
+
+    let minStr = tasks[0]?.start;
+    let maxStr = tasks[0]?.end;
+    tasks.forEach(t => {
+      if (t.start && (!minStr || t.start < minStr)) minStr = t.start;
+      if (t.end && (!maxStr || t.end > maxStr)) maxStr = t.end;
+    });
+    if (minStr) minD = ProjectEngine.parseDate(minStr);
+    if (maxStr) maxD = ProjectEngine.parseDate(maxStr);
+
+    minD.setDate(minD.getDate() - 5);
+    maxD.setDate(maxD.getDate() + 15);
+
+    const totalDays = Math.max(30, Math.ceil((maxD - minD) / (1000 * 60 * 60 * 24)));
+    const dayW = Math.max(16, Math.min(32, Math.floor(1400 / totalDays)));
+    const timelineW = totalDays * dayW;
+
+    const totalW = wbsW + timelineW + 40;
+    const totalH = headerH + (tasks.length * rowH) + 60;
+
+    const scale = 2; // Retina 2x
+    const canvas = document.createElement('canvas');
+    canvas.width = totalW * scale;
+    canvas.height = totalH * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
+
+    // Fundo
+    const isDark = !document.body.classList.contains('light-theme');
+    const bgApp = isDark ? '#0f172a' : '#ffffff';
+    const bgPanel = isDark ? '#1e293b' : '#f8fafc';
+    const borderColor = isDark ? '#334155' : '#e2e8f0';
+    const textMain = isDark ? '#f8fafc' : '#0f172a';
+    const textMuted = isDark ? '#94a3b8' : '#64748b';
+
+    ctx.fillStyle = bgApp;
+    ctx.fillRect(0, 0, totalW, totalH);
+
+    // Cabeçalho
+    ctx.fillStyle = bgPanel;
+    ctx.fillRect(0, 0, totalW, headerH);
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0, 0, totalW, headerH);
+
+    // Logo / Título
+    ctx.fillStyle = '#107c41';
+    ctx.font = 'bold 20px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
+    ctx.fillText('ProjectClone', 24, 38);
+
+    ctx.fillStyle = textMain;
+    ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
+    ctx.fillText(`•  ${State.project.name || 'Cronograma do Projeto'}`, 160, 38);
+
+    // Metadados
+    const todayStr = ProjectEngine.formatDate(new Date());
+    ctx.fillStyle = textMuted;
+    ctx.font = '13px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
+    ctx.fillText(`Exportado em: ${todayStr} | Tarefas: ${tasks.length} | Moeda: ${State.project.currency || 'BRL'}`, 24, 68);
+
+    // Legendas
+    const legX = totalW - 440;
+    ctx.fillStyle = '#107c41';
+    ctx.fillRect(legX, 30, 14, 14);
+    ctx.fillStyle = textMain;
+    ctx.fillText('Normal', legX + 20, 42);
+
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(legX + 80, 30, 14, 14);
+    ctx.fillStyle = textMain;
+    ctx.fillText('Crítico', legX + 100, 42);
+
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(legX + 160, 30, 14, 14);
+    ctx.fillStyle = textMain;
+    ctx.fillText('Marco', legX + 180, 42);
+
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(legX + 240, 30, 14, 14);
+    ctx.fillStyle = textMain;
+    ctx.fillText('Fase / Resumo', legX + 260, 42);
+
+    // Cabeçalho da Tabela WBS
+    const tableTop = headerH;
+    ctx.fillStyle = isDark ? '#1a2234' : '#edf2f7';
+    ctx.fillRect(0, tableTop, wbsW, 36);
+    ctx.fillStyle = textMuted;
+    ctx.font = 'bold 11px sans-serif';
+    ctx.fillText('ID', 16, tableTop + 22);
+    ctx.fillText('WBS', 50, tableTop + 22);
+    ctx.fillText('NOME DA TAREFA', 110, tableTop + 22);
+    ctx.fillText('DUR.', 350, tableTop + 22);
+    ctx.fillText('INÍCIO', 410, tableTop + 22);
+    ctx.fillText('FIM', 490, tableTop + 22);
+    ctx.fillText('%', 570, tableTop + 22);
+
+    // Cabeçalho da Linha do Tempo (Gantt Header)
+    ctx.fillRect(wbsW, tableTop, timelineW + 40, 36);
+    ctx.strokeStyle = borderColor;
+    ctx.strokeRect(wbsW, tableTop, timelineW + 40, 36);
+
+    // Linha divisória vertical WBS / Gantt
+    ctx.beginPath();
+    ctx.moveTo(wbsW, tableTop);
+    ctx.lineTo(wbsW, totalH);
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Desenha linhas de tarefas e barras
+    tasks.forEach((t, i) => {
+      const y = tableTop + 36 + (i * rowH);
+
+      // Zebra
+      if (i % 2 === 1) {
+        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)';
+        ctx.fillRect(0, y, totalW, rowH);
+      }
+
+      // Linha horizontal
+      ctx.beginPath();
+      ctx.moveTo(0, y + rowH);
+      ctx.lineTo(totalW, y + rowH);
+      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+      ctx.stroke();
+
+      // Texto da WBS
+      const isSummary = !!t.isSummary;
+      ctx.font = isSummary ? 'bold 12px sans-serif' : '12px sans-serif';
+      ctx.fillStyle = textMain;
+
+      ctx.fillText(String(t.id), 16, y + 22);
+      ctx.fillText(t.wbs || '', 50, y + 22);
+
+      const indent = (t.level || 0) * 14;
+      const truncatedName = t.name.length > 28 ? t.name.slice(0, 26) + '...' : t.name;
+      ctx.fillText(truncatedName, 110 + indent, y + 22);
+
+      ctx.fillStyle = textMuted;
+      ctx.fillText(`${t.duration || 0}d`, 350, y + 22);
+      ctx.fillText(t.start || '', 410, y + 22);
+      ctx.fillText(t.end || '', 490, y + 22);
+      ctx.fillText(`${t.progress || 0}%`, 570, y + 22);
+
+      // Barra de Gantt
+      if (t.start && t.end) {
+        const dStart = ProjectEngine.parseDate(t.start);
+        const dEnd = ProjectEngine.parseDate(t.end);
+        const startDiff = (dStart - minD) / (1000 * 60 * 60 * 24);
+        const durDays = Math.max(1, (dEnd - dStart) / (1000 * 60 * 60 * 24) + 1);
+
+        const barX = wbsW + 20 + (startDiff * dayW);
+        const barW = Math.max(6, durDays * dayW);
+        const barY = y + 7;
+        const barH = 20;
+
+        if (t.milestone) {
+          // Diamante
+          ctx.save();
+          ctx.translate(barX, y + 17);
+          ctx.rotate(Math.PI / 4);
+          ctx.fillStyle = '#fbbf24';
+          ctx.fillRect(-7, -7, 14, 14);
+          ctx.restore();
+        } else if (isSummary) {
+          // Barra de Sumário com brackets
+          ctx.fillStyle = '#475569';
+          ctx.fillRect(barX, barY + 3, barW, 6);
+          ctx.fillRect(barX, barY + 3, 3, 12);
+          ctx.fillRect(barX + barW - 3, barY + 3, 3, 12);
+        } else {
+          // Barra Normal ou Crítica
+          const isCrit = t.isCritical && State.project.showCriticalPath;
+          ctx.fillStyle = isCrit ? '#ef4444' : '#107c41';
+
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(barX, barY, barW, barH, 4);
+          } else {
+            ctx.rect(barX, barY, barW, barH);
+          }
+          ctx.fill();
+
+          // Progresso interno
+          if (t.progress > 0) {
+            const progW = (barW * Math.min(100, t.progress)) / 100;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            if (ctx.roundRect) {
+              ctx.roundRect(barX, barY, progW, barH, [4, 0, 0, 4]);
+            } else {
+              ctx.rect(barX, barY, progW, barH);
+            }
+            ctx.fill();
+          }
+        }
+
+        // Rótulo da tarefa ao lado da barra
+        ctx.fillStyle = textMuted;
+        ctx.font = '11px sans-serif';
+        ctx.fillText(t.name, barX + barW + 8, y + 21);
+      }
+    });
+
+    // Converte para Blob e dispara download
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${this.slugify(State.project.name)}_gantt.png`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 150);
+
+      if (window.App && window.App.showToast) {
+        window.App.showToast('📸 Imagem PNG de alta resolução exportada com sucesso!');
+      }
+    }, 'image/png');
+  },
+
   // Utilitários de Download
   downloadFile(content, fileName, mimeType) {
     const blob = new Blob([content], { type: mimeType });

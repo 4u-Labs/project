@@ -100,6 +100,16 @@ const App = {
         State.eventBus.emit('displayOptionsChanged', State.project);
       });
     }
+
+    // Toggle Mini-Mapa Panorâmico
+    const chkMinimap = document.getElementById('chkMinimap');
+    if (chkMinimap) {
+      chkMinimap.checked = State.project.showMinimap !== false;
+      chkMinimap.addEventListener('change', () => {
+        State.project.showMinimap = chkMinimap.checked;
+        if (window.GanttChart) window.GanttChart.render();
+      });
+    }
   },
 
   handleAction(action, btnEl) {
@@ -144,6 +154,9 @@ const App = {
         break;
       case 'exportPdf':
         window.print();
+        break;
+      case 'exportPng':
+        ProjectIO.exportHighResPng();
         break;
       case 'about':
         this.openModal('modalAbout');

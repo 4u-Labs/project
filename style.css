@@ -2558,5 +2558,118 @@ body {
   border-radius: 4px;
 }
 
+/* ==========================================================================
+   Refinamentos de UX: Arraste de Linhas WBS (Drag & Drop)
+   ========================================================================== */
+.col-id[draggable="true"] {
+  cursor: grab;
+  user-select: none;
+}
+.col-id[draggable="true"]:active {
+  cursor: grabbing;
+}
+.drag-grip {
+  opacity: 0.35;
+  margin-right: 2px;
+  font-size: 0.85rem;
+  transition: opacity 0.15s ease;
+}
+.wbs-row:hover .drag-grip {
+  opacity: 0.9;
+  color: var(--ms-green);
+}
+.wbs-row-dragging {
+  opacity: 0.35;
+  background: var(--bg-surface-hover) !important;
+}
+.drag-over-top td {
+  border-top: 2px solid var(--ms-green) !important;
+}
+.drag-over-bottom td {
+  border-bottom: 2px solid var(--ms-green) !important;
+}
+
+/* ==========================================================================
+   Refinamentos de UX: Mini-Mapa Panorâmico do Gráfico de Gantt
+   ========================================================================== */
+.gantt-minimap-bar {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  padding: 6px 12px;
+  display: block;
+}
+.minimap-track-wrap {
+  width: 100%;
+}
+.minimap-track {
+  position: relative;
+  height: 22px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.minimap-bars-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+.minimap-micro-bar {
+  position: absolute;
+  top: 6px;
+  height: 10px;
+  border-radius: 2px;
+  opacity: 0.85;
+  pointer-events: none;
+}
+.minimap-micro-bar.mm-normal {
+  background: var(--ms-green);
+}
+.minimap-micro-bar.mm-crit {
+  background: var(--accent-red);
+  box-shadow: 0 0 4px rgba(239, 68, 68, 0.6);
+}
+.minimap-micro-bar.mm-summary {
+  background: #475569;
+  height: 6px;
+  top: 8px;
+}
+.minimap-micro-bar.mm-milestone {
+  background: var(--accent-orange);
+  width: 8px !important;
+  height: 8px !important;
+  transform: rotate(45deg);
+  top: 7px;
+}
+.minimap-viewfinder {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(16, 124, 65, 0.25);
+  border: 1.5px solid var(--ms-green);
+  border-radius: 3px;
+  cursor: grab;
+  transition: border-color 0.15s ease;
+  z-index: 2;
+}
+.minimap-viewfinder:active {
+  cursor: grabbing;
+  background: rgba(16, 124, 65, 0.35);
+}
+.vf-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--ms-green);
+}
+.vf-handle.left { left: 0; }
+.vf-handle.right { right: 0; }
+
+
 
 

@@ -218,6 +218,10 @@
             <span class="r-icon">🖨️</span>
             <span class="r-text" data-i18n="actExportPdf">PDF / Imprimir</span>
           </button>
+          <button class="ribbon-btn" data-action="exportPng" title="Exportar imagem PNG em alta resolução (300 DPI) do cronograma">
+            <span class="r-icon">📸</span>
+            <span class="r-text">Imagem (PNG)</span>
+          </button>
           <span class="ribbon-group-title">Interoperabilidade</span>
         </div>
 
@@ -256,6 +260,12 @@
             <label style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
               <input type="checkbox" id="chkBaseline">
               <span data-i18n="actShowBaseline">Exibir Linha de Base</span>
+            </label>
+          </div>
+          <div class="ribbon-control-item" style="margin-left: 10px;">
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px;" title="Exibir mini-mapa panorâmico no topo do gráfico">
+              <input type="checkbox" id="chkMinimap" checked>
+              <span>🗺️ Mini-Mapa</span>
             </label>
           </div>
           <span class="ribbon-group-title">Camadas Visuais</span>

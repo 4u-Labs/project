@@ -37,6 +37,19 @@ const GanttChart = {
   renderSkeleton() {
     this.container.innerHTML = `
       <div class="gantt-root">
+        <!-- Barra de Mini-Mapa Panorâmico -->
+        <div class="gantt-minimap-bar" id="ganttMinimap">
+          <div class="minimap-track-wrap">
+            <div class="minimap-track" id="minimapTrack">
+              <div class="minimap-bars-container" id="minimapBars"></div>
+              <div class="minimap-viewfinder" id="minimapViewfinder" title="Arraste para navegar pelo cronograma">
+                <span class="vf-handle left"></span>
+                <span class="vf-handle right"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="gantt-header-sticky" id="ganttHeader"></div>
         <div class="gantt-body-scroll" id="ganttBodyScroll">
           <div class="gantt-timeline-content" id="ganttTimeline">
@@ -60,6 +73,10 @@ const GanttChart = {
     this.barsLayer = document.getElementById('ganttBarsLayer');
     this.gridBg = document.getElementById('ganttGridBg');
     this.todayLine = document.getElementById('ganttTodayLine');
+    this.minimapBar = document.getElementById('ganttMinimap');
+    this.minimapTrack = document.getElementById('minimapTrack');
+    this.minimapBars = document.getElementById('minimapBars');
+    this.minimapViewfinder = document.getElementById('minimapViewfinder');
   },
 
   calculateDateRange() {
@@ -130,6 +147,58 @@ const GanttChart = {
     this.renderHeader(totalWidth);
     this.renderGridAndToday(totalWidth);
     this.renderBarsAndDependencies(totalWidth);
+    this.renderMinimap(totalWidth);
+  },
+
+  renderMinimap(totalWidth) {
+    if (!this.minimapBar || !this.minimapBars) return;
+
+    if (State.project.showMinimap === false) {
+      this.minimapBar.style.display = 'none';
+      return;
+    }
+    this.minimapBar.style.display = 'block';
+
+    const tasks = State.tasks || [];
+    if (!this.minDate || !this.maxDate || this.totalDays <= 0) return;
+
+    let html = '';
+    tasks.forEach(t => {
+      if (!t.start || !t.end) return;
+
+      const dStart = ProjectEngine.parseDate(t.start);
+      const dEnd = ProjectEngine.parseDate(t.end);
+      const startDay = Math.max(0, (dStart - this.minDate) / (1000 * 60 * 60 * 24));
+      const endDay = Math.min(this.totalDays, (dEnd - this.minDate) / (1000 * 60 * 60 * 24));
+      const durDays = Math.max(1, endDay - startDay);
+
+      const leftPct = (startDay / this.totalDays) * 100;
+      const widthPct = Math.max(0.6, (durDays / this.totalDays) * 100);
+
+      let barClass = 'mm-normal';
+      if (t.isSummary) barClass = 'mm-summary';
+      else if (t.isCritical && State.project.showCriticalPath) barClass = 'mm-crit';
+      else if (t.milestone) barClass = 'mm-milestone';
+
+      html += `<div class="minimap-micro-bar ${barClass}" style="left: ${leftPct}%; width: ${widthPct}%;" title="${t.name}"></div>`;
+    });
+
+    this.minimapBars.innerHTML = html;
+    this.updateMinimapViewfinder();
+  },
+
+  updateMinimapViewfinder() {
+    if (!this.minimapViewfinder || !this.bodyWrap || !this.timelineEl) return;
+
+    const visibleWidth = this.bodyWrap.clientWidth || 800;
+    const totalWidth = this.timelineEl.scrollWidth || 1200;
+    const scrollLeft = this.bodyWrap.scrollLeft || 0;
+
+    const widthPct = Math.min(100, Math.max(5, (visibleWidth / totalWidth) * 100));
+    const leftPct = Math.min(100 - widthPct, Math.max(0, (scrollLeft / totalWidth) * 100));
+
+    this.minimapViewfinder.style.width = `${widthPct}%`;
+    this.minimapViewfinder.style.left = `${leftPct}%`;
   },
 
   renderHeader(totalWidth) {
@@ -426,7 +495,7 @@ const GanttChart = {
   },
 
   bindEvents() {
-    // Scroll sincronizado com WBS
+    // Scroll sincronizado com WBS e Minimap
     if (this.bodyWrap) {
       this.bodyWrap.addEventListener('scroll', () => {
         if (this.headerEl) {
@@ -436,8 +505,55 @@ const GanttChart = {
         if (wbsWrap) {
           wbsWrap.scrollTop = this.bodyWrap.scrollTop;
         }
+        this.updateMinimapViewfinder();
       });
     }
+
+    // Clique e arraste de navegação no Minimap
+    if (this.minimapTrack) {
+      let isDraggingMinimap = false;
+
+      const handleMinimapNav = (e) => {
+        const rect = this.minimapTrack.getBoundingClientRect();
+        const clickRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        const totalWidth = this.timelineEl.scrollWidth || 1200;
+        const visibleWidth = this.bodyWrap.clientWidth || 800;
+        this.bodyWrap.scrollLeft = (clickRatio * totalWidth) - (visibleWidth / 2);
+        this.updateMinimapViewfinder();
+      };
+
+      this.minimapTrack.addEventListener('mousedown', (e) => {
+        isDraggingMinimap = true;
+        handleMinimapNav(e);
+        e.preventDefault();
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (isDraggingMinimap) {
+          handleMinimapNav(e);
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        isDraggingMinimap = false;
+      });
+    }
+
+    // Zoom Fluido com Ctrl + Scroll
+    this.container.addEventListener('wheel', (e) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        const zoomLevels = ['quarter', 'month', 'week', 'day'];
+        const currentZoom = State.project.zoom || 'week';
+        const currentIdx = zoomLevels.indexOf(currentZoom);
+
+        if (e.deltaY < 0 && currentIdx < zoomLevels.length - 1) {
+          this.applyZoomWithAnchor(zoomLevels[currentIdx + 1], e.clientX);
+        } else if (e.deltaY > 0 && currentIdx > 0) {
+          this.applyZoomWithAnchor(zoomLevels[currentIdx - 1], e.clientX);
+        }
+      }
+    }, { passive: false });
 
     // Seleção de barra e início de Drag & Drop
     this.container.addEventListener('mousedown', (e) => {
@@ -483,6 +599,31 @@ const GanttChart = {
         if (window.App) window.App.openTaskModal(id);
       }
     });
+  },
+
+  applyZoomWithAnchor(newZoom, clientX) {
+    if (!this.bodyWrap || !this.timelineEl) return;
+    const rect = this.bodyWrap.getBoundingClientRect();
+    const mouseX = clientX - rect.left;
+    const oldScrollLeft = this.bodyWrap.scrollLeft;
+    const oldTotalWidth = this.timelineEl.scrollWidth || 1;
+    const cursorTimeRatio = (oldScrollLeft + mouseX) / oldTotalWidth;
+
+    State.setZoom(newZoom);
+
+    const selectZoom = document.getElementById('selectZoom');
+    if (selectZoom) selectZoom.value = newZoom;
+
+    requestAnimationFrame(() => {
+      const newTotalWidth = this.timelineEl.scrollWidth || 1;
+      this.bodyWrap.scrollLeft = Math.max(0, (newTotalWidth * cursorTimeRatio) - mouseX);
+      this.updateMinimapViewfinder();
+    });
+
+    if (window.App && window.App.showToast) {
+      const labels = { day: 'Dias', week: 'Semanas', month: 'Meses', quarter: 'Trimestres' };
+      window.App.showToast(`🔍 Zoom: ${labels[newZoom] || newZoom}`, 1200);
+    }
   },
 
   startDrag(taskId, mode, startClientX) {
