@@ -375,8 +375,26 @@ const GoogleAuth = {
         if (dropdown) dropdown.classList.add('hidden');
     },
 
+    requireAuthForAi(featureName = 'ProjectClone IA', callback = null) {
+        if (!this.isLoggedIn()) {
+            this.openAuthModal(featureName, callback);
+            return false;
+        }
+        if (!this.hasCredits(1)) {
+            this.openCreditsModal('insufficient');
+            return false;
+        }
+        if (callback) {
+            callback();
+        }
+        return true;
+    },
+
     // 8. MODAL DE AVISO: LOGIN GOOGLE OBRIGATÓRIO
-    openAuthModal(featureName = 'PointClone') {
+    openAuthModal(featureName = 'ProjectClone IA', onSuccess = null) {
+        if (onSuccess) {
+            this.pendingAction = onSuccess;
+        }
         let modal = document.getElementById('googleAuthPromptModal');
         const isEn = this.getLang() === 'en';
 
@@ -390,19 +408,19 @@ const GoogleAuth = {
         modal.innerHTML = `
             <div class="bg-white border border-gray-300 rounded-2xl p-6 max-w-md w-full shadow-2xl relative text-left">
                 <button onclick="GoogleAuth.closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 font-bold text-sm">✕</button>
-                <div class="w-12 h-12 rounded-2xl bg-orange-600/10 text-[#c43e1c] flex items-center justify-center text-xl mb-3">
-                    <i class="fa-solid fa-file-powerpoint"></i>
+                <div class="w-12 h-12 rounded-2xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center text-xl mb-3">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
                 </div>
                 <h3 class="text-base font-extrabold text-gray-900 mb-1">
                     ${isEn ? 'Sign in with Google' : 'Faça login com sua conta Google'}
                 </h3>
                 <p class="text-xs text-gray-600 mb-4">
                     ${isEn 
-                        ? `Connect your Google account to sync presentation features and credits in <strong>${featureName}</strong>. You get <strong>10 free credits</strong> to use in any 4U app!` 
-                        : `Conecte sua conta Google para sincronizar apresentações e créditos no <strong>${featureName}</strong>. Novos usuários ganham <strong>10 créditos gratuitos</strong> para usar em qualquer app da 4U!`}
+                        ? `Connect your Google account to use <strong>${featureName}</strong> and sync your unified 4U credits. New accounts get <strong>10 free credits</strong> to use in any 4U app!` 
+                        : `Conecte sua conta Google para utilizar o recurso <strong>${featureName}</strong> e sincronizar seus créditos unificados. Novos usuários ganham <strong>10 créditos gratuitos</strong> para usar em qualquer app da 4U!`}
                 </p>
                 <div class="space-y-2">
-                    <button onclick="GoogleAuth.signIn()" class="w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-[#c43e1c] hover:bg-[#a03014] text-white rounded-xl text-xs font-bold shadow-lg transition-all cursor-pointer">
+                    <button onclick="GoogleAuth.signIn()" class="w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-lg transition-all cursor-pointer">
                         <i class="fa-brands fa-google text-sm"></i>
                         <span>${isEn ? 'Sign in with Google' : 'Entrar com Conta Google'}</span>
                     </button>
