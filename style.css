@@ -1,0 +1,1459 @@
+/* ==========================================================================
+   ProjectClone - Estilos Globais, Tema Fluent & Modos de Visualização
+   ========================================================================== */
+
+:root {
+  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Cores Padrão - Dark Theme */
+  --bg-app: #0d1117;
+  --bg-surface: #161b22;
+  --bg-surface-hover: #21262d;
+  --bg-panel: #1a202c;
+  --border-color: #30363d;
+  --border-light: #21262d;
+  
+  --text-main: #f0f6fc;
+  --text-muted: #8b949e;
+  --text-inverse: #0d1117;
+
+  /* Cores de Destaque / Identidade ProjectClone */
+  --ms-green: #107c41;
+  --ms-green-light: #169b52;
+  --ms-green-dark: #0a4d28;
+  --accent-cyan: #38bdf8;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #a855f7;
+
+  /* Gantt & Gráficos */
+  --gantt-bar-bg: linear-gradient(135deg, #107c41 0%, #169b52 100%);
+  --gantt-progress-bg: rgba(255, 255, 255, 0.28);
+  --gantt-crit-bg: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%);
+  --gantt-summary-bg: #2d3748;
+  --gantt-milestone-bg: linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
+  --gantt-today-line: #f43f5e;
+  --gantt-weekend-bg: rgba(0, 0, 0, 0.22);
+}
+
+body.light-theme {
+  --bg-app: #f3f4f6;
+  --bg-surface: #ffffff;
+  --bg-surface-hover: #e5e7eb;
+  --bg-panel: #f9fafb;
+  --border-color: #d1d5db;
+  --border-light: #e5e7eb;
+
+  --text-main: #111827;
+  --text-muted: #6b7280;
+  --text-inverse: #ffffff;
+
+  --ms-green: #107c41;
+  --ms-green-light: #15803d;
+  --ms-green-dark: #0a4d28;
+
+  --gantt-bar-bg: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+  --gantt-progress-bg: rgba(0, 0, 0, 0.2);
+  --gantt-crit-bg: linear-gradient(135deg, #dc2626 0%, #f87171 100%);
+  --gantt-summary-bg: #1f2937;
+  --gantt-weekend-bg: rgba(0, 0, 0, 0.04);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   Header Superior da Aplicação
+   ========================================================================== */
+.app-header {
+  background-color: var(--ms-green-dark);
+  color: #ffffff;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  user-select: none;
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-logo-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+.app-title-group {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.app-name {
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.5px;
+}
+
+.project-title-badge {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.project-title-badge:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.app-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lang-btn-group {
+  display: flex;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-lang {
+  background: transparent;
+  color: #fff;
+  border: none;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-lang.active {
+  background: var(--ms-green-light);
+}
+
+.btn-header-icon {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-header-icon:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ==========================================================================
+   Ribbon Bar (Menus e Ferramentas Estilo Fluent)
+   ========================================================================== */
+.ribbon-container {
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.ribbon-tabs-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.ribbon-tabs-list {
+  display: flex;
+}
+
+.ribbon-tab {
+  padding: 7px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.15s;
+}
+.ribbon-tab:hover {
+  color: var(--text-main);
+  background: var(--bg-surface-hover);
+}
+.ribbon-tab.active {
+  color: var(--ms-green);
+  border-bottom-color: var(--ms-green);
+}
+
+.view-mode-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.view-tab-btn {
+  background: var(--bg-app);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.view-tab-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-main);
+}
+.view-tab-btn.active {
+  background: var(--ms-green);
+  color: #fff;
+  border-color: var(--ms-green);
+}
+
+/* Painéis de Ferramentas do Ribbon */
+.ribbon-panels {
+  min-height: 82px;
+  padding: 6px 12px;
+  background-color: var(--bg-surface);
+  display: flex;
+  align-items: stretch;
+}
+
+.ribbon-panel {
+  display: none;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+}
+.ribbon-panel.active {
+  display: flex;
+}
+
+.ribbon-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border-right: 1px solid var(--border-color);
+  position: relative;
+}
+.ribbon-group:last-child {
+  border-right: none;
+}
+
+.ribbon-group-title {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ribbon-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-main);
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  min-width: 58px;
+  transition: all 0.15s;
+}
+.ribbon-btn:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-color);
+}
+.ribbon-btn .r-icon {
+  font-size: 1.3rem;
+  margin-bottom: 3px;
+}
+.ribbon-btn .r-text {
+  font-size: 0.72rem;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ribbon-control-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-main);
+}
+.ribbon-select {
+  background: var(--bg-app);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+/* ==========================================================================
+   Workspace Principal & Split View (Gantt + WBS)
+   ========================================================================== */
+.main-workspace {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.split-view-container {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Painel WBS / Planilha */
+.wbs-pane {
+  width: 560px;
+  min-width: 320px;
+  max-width: 900px;
+  background: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--border-color);
+}
+
+.wbs-table-wrap {
+  flex: 1;
+  overflow: auto;
+}
+
+.wbs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  user-select: none;
+  table-layout: fixed;
+}
+
+.wbs-table thead th {
+  background: var(--bg-surface-hover);
+  color: var(--text-muted);
+  font-weight: 700;
+  padding: 8px 6px;
+  border-bottom: 2px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.wbs-table tbody tr {
+  border-bottom: 1px solid var(--border-light);
+  transition: background 0.1s;
+}
+.wbs-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.wbs-table tbody tr.selected {
+  background: rgba(16, 124, 65, 0.18) !important;
+}
+.wbs-table tbody tr.critical-row {
+  border-left: 4px solid var(--accent-red);
+}
+.wbs-table tbody tr.wbs-summary-row {
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.wbs-table td {
+  padding: 4px 6px;
+  border-right: 1px solid var(--border-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.col-id, .col-wbs {
+  text-align: center;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+.col-duration {
+  text-align: right;
+  font-family: var(--font-mono);
+}
+.col-date {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+.col-progress {
+  text-align: center;
+  font-family: var(--font-mono);
+}
+
+.col-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.wbs-toggle-exp {
+  cursor: pointer;
+  display: inline-block;
+  width: 14px;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+.wbs-toggle-exp:hover {
+  color: var(--text-main);
+}
+.wbs-leaf-spacer {
+  display: inline-block;
+  width: 14px;
+}
+
+.cell-editable {
+  display: block;
+  width: 100%;
+  cursor: cell;
+}
+.wbs-inline-input {
+  width: 100%;
+  padding: 2px 4px;
+  font-size: 0.8rem;
+  background: var(--bg-app);
+  color: var(--text-main);
+  border: 1px solid var(--ms-green);
+  border-radius: 3px;
+  outline: none;
+}
+
+.res-tag {
+  background: rgba(56, 189, 248, 0.18);
+  color: var(--accent-cyan);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  margin-right: 2px;
+}
+.res-none {
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.wbs-btn-icon {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+.wbs-btn-icon:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-main);
+}
+
+/* Divisor Redimensionável (Splitter) */
+.split-handle {
+  width: 7px;
+  background: var(--border-color);
+  cursor: col-resize;
+  position: relative;
+  z-index: 20;
+  transition: background 0.15s;
+}
+.split-handle:hover, .split-handle:active {
+  background: var(--ms-green);
+}
+
+/* Painel Gantt */
+.gantt-pane {
+  flex: 1;
+  background: var(--bg-app);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.gantt-root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.gantt-header-sticky {
+  background: var(--bg-surface-hover);
+  border-bottom: 2px solid var(--border-color);
+  overflow: hidden;
+  user-select: none;
+}
+
+.gantt-header-row {
+  position: relative;
+  height: 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+.gantt-header-row.bottom-row {
+  height: 24px;
+}
+
+.gantt-header-cell {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-right: 1px solid var(--border-color);
+  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.gantt-header-cell.top-cell {
+  font-weight: 700;
+  color: var(--text-main);
+  background: rgba(0, 0, 0, 0.08);
+}
+.weekend-header {
+  background: var(--gantt-weekend-bg);
+  color: var(--accent-orange);
+}
+
+.gantt-body-scroll {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+.gantt-timeline-content {
+  position: relative;
+  min-height: 100%;
+}
+
+.gantt-grid-bg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+.weekend-col {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--gantt-weekend-bg);
+  border-right: 1px dashed rgba(255, 255, 255, 0.05);
+}
+
+.gantt-today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--gantt-today-line);
+  z-index: 15;
+  box-shadow: 0 0 6px rgba(244, 63, 94, 0.8);
+}
+.gantt-today-line::after {
+  content: 'HOJE';
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: var(--gantt-today-line);
+  background: var(--bg-surface);
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid var(--gantt-today-line);
+}
+
+.gantt-svg-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 12;
+}
+
+.gantt-bars-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.gantt-row-guide {
+  position: absolute;
+  border-bottom: 1px solid var(--border-light);
+  pointer-events: none;
+}
+.gantt-row-guide.alt-row {
+  background: rgba(255, 255, 255, 0.015);
+}
+.gantt-row-guide.selected-row {
+  background: rgba(16, 124, 65, 0.12);
+}
+
+/* Barras de Tarefas */
+.gantt-task-bar {
+  position: absolute;
+  background: var(--gantt-bar-bg);
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  cursor: grab;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  transition: transform 0.05s;
+}
+.gantt-task-bar:active {
+  cursor: grabbing;
+}
+.gantt-task-bar.selected {
+  outline: 2px solid #ffffff;
+  z-index: 14;
+}
+.gantt-task-bar.critical-bar {
+  background: var(--gantt-crit-bg);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+.gantt-progress-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--gantt-progress-bg);
+  border-radius: 4px 0 0 4px;
+  pointer-events: none;
+}
+
+/* Alças de Redimensionamento */
+.gantt-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: ew-resize;
+  z-index: 15;
+}
+.handle-left {
+  left: 0;
+}
+.handle-right {
+  right: 0;
+}
+
+/* Pinos de Dependência */
+.gantt-link-pin {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid var(--ms-green-dark);
+  cursor: crosshair;
+  opacity: 0;
+  transition: opacity 0.15s, transform 0.15s;
+  z-index: 20;
+}
+.gantt-task-bar:hover .gantt-link-pin {
+  opacity: 1;
+}
+.pin-left {
+  left: -5px;
+}
+.pin-right {
+  right: -5px;
+}
+.gantt-link-pin:hover {
+  transform: translateY(-50%) scale(1.4);
+  background: var(--accent-cyan);
+}
+
+.gantt-bar-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.inside-label {
+  color: #ffffff;
+  padding: 0 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.outside-label {
+  position: absolute;
+  color: var(--text-muted);
+}
+
+/* Marco / Milestone */
+.gantt-milestone-wrap {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  z-index: 12;
+}
+.gantt-milestone-diamond {
+  width: 18px;
+  height: 18px;
+  background: var(--gantt-milestone-bg);
+  transform: rotate(45deg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+  border-radius: 3px;
+}
+.gantt-milestone-wrap.critical-item .gantt-milestone-diamond {
+  background: var(--gantt-crit-bg);
+}
+.gantt-milestone-wrap .gantt-bar-label {
+  margin-left: 12px;
+  color: var(--text-main);
+}
+
+/* Barra de Resumo / Fase */
+.gantt-summary-bar {
+  position: absolute;
+  z-index: 11;
+}
+.summary-body {
+  height: 8px;
+  background: var(--gantt-summary-bg);
+  border-radius: 2px;
+}
+.summary-bracket-left, .summary-bracket-right {
+  position: absolute;
+  top: 8px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--gantt-summary-bg);
+}
+.summary-bracket-left { left: 0; }
+.summary-bracket-right { right: 0; }
+.gantt-summary-bar .gantt-bar-label {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: -3px;
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+/* Linha de Base (Baseline Ghost Bar) */
+.gantt-baseline-bar {
+  position: absolute;
+  height: 6px;
+  background: #64748b;
+  border-radius: 2px;
+  opacity: 0.6;
+  z-index: 8;
+}
+
+/* ==========================================================================
+   Quadro Kanban Ágil
+   ========================================================================== */
+.kanban-view-container {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  background: var(--bg-app);
+}
+
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  height: 100%;
+  min-width: 1000px;
+}
+
+.kanban-column {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.col-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.col-count {
+  background: var(--bg-surface-hover);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+}
+
+.col-body {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: background 0.15s;
+}
+.col-body.drag-over {
+  background: rgba(16, 124, 65, 0.12);
+  outline: 2px dashed var(--ms-green);
+}
+
+.kanban-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 12px;
+  cursor: grab;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.kanban-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  border-color: var(--ms-green);
+}
+.kanban-card.is-dragging {
+  opacity: 0.4;
+}
+.kanban-card.card-critical {
+  border-left: 4px solid var(--accent-red);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  margin-bottom: 6px;
+  color: var(--text-muted);
+}
+.card-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.card-dates {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.card-progress-bar {
+  height: 5px;
+  background: var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.card-progress-fill {
+  height: 100%;
+  background: var(--ms-green);
+}
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+.badge-critical {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--accent-red);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   Folha de Recursos
+   ========================================================================== */
+.resources-view-container {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+  background: var(--bg-app);
+}
+
+.resources-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.resources-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.res-table {
+  width: 100%;
+  background: var(--bg-surface);
+  border-collapse: collapse;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.88rem;
+}
+.res-table th {
+  background: var(--bg-surface-hover);
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--border-color);
+  text-align: left;
+  font-weight: 700;
+}
+.res-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.btn-primary {
+  background: var(--ms-green);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-primary:hover {
+  background: var(--ms-green-light);
+}
+
+.btn-res-action {
+  background: transparent;
+  border: none;
+  color: var(--accent-red);
+  font-weight: bold;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+/* ==========================================================================
+   Dashboard Executivo & KPIs
+   ========================================================================== */
+.dashboard-view-container {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+  background: var(--bg-app);
+}
+
+.dashboard-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  margin-bottom: 20px;
+}
+.dash-subtitle {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.kpi-card.alert {
+  border-color: var(--accent-red);
+}
+.kpi-icon {
+  font-size: 2rem;
+}
+.kpi-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.kpi-title {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.kpi-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 2px 0;
+}
+.kpi-value.date-val {
+  font-size: 1.25rem;
+}
+.kpi-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.kpi-bar-track {
+  height: 6px;
+  background: var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.kpi-bar-fill {
+  height: 100%;
+  background: var(--ms-green);
+}
+
+.dashboard-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.dash-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 18px;
+}
+.dash-panel h3 {
+  font-size: 1rem;
+  margin-bottom: 14px;
+  color: var(--text-main);
+}
+
+.status-bars-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.status-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.status-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.status-track {
+  height: 8px;
+  background: var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.status-fill {
+  height: 100%;
+}
+.bg-success { background: var(--ms-green); }
+.bg-warning { background: var(--accent-orange); }
+.bg-info { background: var(--accent-cyan); }
+.bg-danger { background: var(--accent-red); }
+.bg-primary { background: var(--ms-green-light); }
+
+.critical-tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.crit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-panel);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  border-left: 3px solid var(--accent-red);
+}
+.crit-id {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+.crit-name {
+  font-weight: 600;
+  flex: 1;
+  margin: 0 10px;
+}
+.crit-dates {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+/* ==========================================================================
+   Calendário Mensal
+   ========================================================================== */
+.calendar-view-container {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  background: var(--bg-app);
+}
+
+.calendar-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cal-nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color);
+}
+.btn-cal-nav {
+  background: var(--bg-surface-hover);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.btn-cal-nav:hover {
+  background: var(--border-color);
+}
+
+.cal-grid-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--bg-surface-hover);
+  border-bottom: 1px solid var(--border-color);
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 8px 0;
+}
+
+.cal-grid-body {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: minmax(110px, 1fr);
+}
+
+.cal-day {
+  border-right: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+}
+.cal-day-weekend {
+  background: var(--gantt-weekend-bg);
+}
+.cal-day-today {
+  background: rgba(16, 124, 65, 0.08);
+}
+.cal-day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.cal-day-number {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.cal-today-badge {
+  background: var(--gantt-today-line);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.cal-day-tasks {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+.cal-task-pill {
+  background: var(--ms-green);
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.cal-task-pill.pill-done {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+.cal-task-pill.pill-crit {
+  background: var(--accent-red);
+}
+.cal-task-pill.pill-milestone {
+  background: var(--accent-orange);
+}
+
+/* ==========================================================================
+   Modais e Caixas de Diálogo
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-dialog {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  width: 90%;
+  max-width: 580px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  animation: modalPop 0.18s ease-out;
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.btn-modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.form-group input, .form-group textarea, .form-group select {
+  background: var(--bg-app);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.88rem;
+  outline: none;
+}
+.form-group input:focus, .form-group textarea:focus {
+  border-color: var(--ms-green);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-secondary {
+  background: var(--bg-surface-hover);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.template-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.template-card-btn {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 14px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.15s;
+}
+.template-card-btn:hover {
+  border-color: var(--ms-green);
+  background: var(--bg-surface-hover);
+  transform: translateY(-2px);
+}
+.tmpl-icon {
+  font-size: 2rem;
+}
+.tmpl-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.tmpl-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Toast Notifications */
+.toast-notification {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--ms-green);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transform: translateY(15px);
+  transition: all 0.25s ease;
+  z-index: 2000;
+  pointer-events: none;
+}
+.toast-notification.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ==========================================================================
+   Estilos de Impressão (PDF & Print)
+   ========================================================================== */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .app-header, .ribbon-container, .split-handle, .modal-overlay, .toast-notification {
+    display: none !important;
+  }
+  .wbs-pane {
+    width: 45% !important;
+  }
+  .gantt-pane {
+    width: 55% !important;
+  }
+}
