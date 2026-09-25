@@ -97,6 +97,11 @@ const AIAssistant = {
     return headers;
   },
 
+  getLang() {
+    if (typeof I18N !== 'undefined' && I18N.currentLang) return I18N.currentLang;
+    return localStorage.getItem('projectclone_lang') || localStorage.getItem('officeclone_lang') || 'pt';
+  },
+
   // 1. Gerar Cronograma Completo por Prompt
   async generateProject(promptText, startDate, currency) {
     if (window.GoogleAuth && !GoogleAuth.isLoggedIn()) {
@@ -111,7 +116,8 @@ const AIAssistant = {
     }
 
     if (this.isProcessing) return;
-    const loadingMsg = (typeof I18N !== 'undefined' && I18N.currentLang === 'en')
+    const isEn = this.getLang() === 'en';
+    const loadingMsg = isEn
       ? '🧠 Generating WBS Structure & Gantt Chart with AI...'
       : '🧠 Criando Estrutura EAP e Gráfico de Gantt com IA...';
     this.setLoading(true, 'modalAiGenerate', loadingMsg);
@@ -125,6 +131,7 @@ const AIAssistant = {
           prompt: promptText,
           startDate: startDate,
           currency: currency,
+          lang: this.getLang(),
           user: window.GoogleAuth ? GoogleAuth.currentUser : null
         })
       });
@@ -173,6 +180,7 @@ const AIAssistant = {
           action: 'audit',
           project: State.project,
           tasks: State.tasks,
+          lang: this.getLang(),
           user: window.GoogleAuth ? GoogleAuth.currentUser : null
         })
       });
@@ -270,6 +278,7 @@ const AIAssistant = {
           action: 'report',
           project: State.project,
           tasks: State.tasks,
+          lang: this.getLang(),
           user: window.GoogleAuth ? GoogleAuth.currentUser : null
         })
       });
@@ -351,6 +360,7 @@ const AIAssistant = {
         body: JSON.stringify({
           action: 'optimize',
           tasks: State.tasks,
+          lang: this.getLang(),
           user: window.GoogleAuth ? GoogleAuth.currentUser : null
         })
       });

@@ -151,6 +151,24 @@ function callOpenAiChat($apiKey, $systemPrompt, $userPrompt, $jsonMode = true, $
 }
 
 /**
+ * Detecta se o idioma solicitado é inglês ou se o prompt/texto está em inglês
+ */
+function resolveProjectLanguage(string $text, string $requestedLang): string
+{
+    $req = strtolower(trim($requestedLang));
+    if ($req === 'en') return 'en';
+    if ($req === 'pt') return 'pt';
+    
+    // Auto-detecção por padrões comuns em inglês
+    if (preg_match('/\b(english|in english|gantt|schedule|launch|relocation|development|app|milestone|project plan|wbs|sprint|scrum|kanban|software|construction)\b/i', $text)) {
+        if (!preg_match('/\b(para|com|gerar|cronograma|obra|reforma|lançamento|tarefa|em português)\b/i', $text)) {
+            return 'en';
+        }
+    }
+    return 'pt';
+}
+
+/**
  * 1. Gerador de Cronograma Completo por Prompt (Prompt-to-Gantt)
  */
 function handleGenerateProject($data, $apiKey) {
@@ -159,12 +177,91 @@ function handleGenerateProject($data, $apiKey) {
         throw new Exception('Por favor, informe a descrição do projeto.');
     }
 
+    $lang = resolveProjectLanguage($prompt, trim($data['lang'] ?? ''));
     $startDate = !empty($data['startDate']) ? $data['startDate'] : date('Y-m-d');
-    $currency = !empty($data['currency']) ? $data['currency'] : 'BRL';
+    $defaultCurrency = ($lang === 'en') ? 'USD' : 'BRL';
+    $currency = !empty($data['currency']) ? $data['currency'] : $defaultCurrency;
     $startYear = (int)substr($startDate, 0, 4);
     $maxYear = $startYear + 2;
 
-    $systemPrompt = "Você é um Especialista Sênior em Gerenciamento de Projetos e Engenharia de Cronogramas certificado PMP/PMI.
+    if ($lang === 'en') {
+        $systemPrompt = "You are a Senior Project Schedule Engineer and PMI/PMP Certified Specialist.
+Your mission is to generate a comprehensive, professional, and realistic Work Breakdown Structure (WBS / Gantt Schedule) in English for ProjectClone (MS Project compatible).
+
+Project start date: {$startDate}.
+Schedule base year: {$startYear} (All dates MUST fall strictly between {$startYear} and {$maxYear}).
+Currency: {$currency}.
+
+You MUST respond EXCLUSIVELY in strict JSON format with this structure:
+{
+  \"project\": {
+    \"name\": \"Clear and professional project title\",
+    \"startDate\": \"{$startDate}\",
+    \"currency\": \"{$currency}\",
+    \"showCriticalPath\": true,
+    \"zoom\": \"week\"
+  },
+  \"resources\": [
+    { \"id\": 1, \"name\": \"Project Manager\", \"role\": \"Management\", \"standardRate\": 120, \"type\": \"work\" },
+    { \"id\": 2, \"name\": \"Lead Architect\", \"role\": \"Engineering\", \"standardRate\": 140, \"type\": \"work\" },
+    { \"id\": 3, \"name\": \"Senior Developer\", \"role\": \"Technical\", \"standardRate\": 110, \"type\": \"work\" },
+    { \"id\": 4, \"name\": \"QA Engineer\", \"role\": \"Quality\", \"standardRate\": 90, \"type\": \"work\" }
+  ],
+  \"tasks\": [
+    {
+      \"id\": 1,
+      \"name\": \"1. INITIATION & REQUIREMENTS\",
+      \"duration\": 10,
+      \"start\": \"{$startDate}\",
+      \"end\": \"YYYY-MM-DD\",
+      \"progress\": 0,
+      \"predecessors\": \"\",
+      \"resourceIds\": [1],
+      \"level\": 0,
+      \"isSummary\": true,
+      \"notes\": \"\"
+    },
+    {
+      \"id\": 2,
+      \"name\": \"Stakeholder interviews and scope definition\",
+      \"duration\": 5,
+      \"start\": \"{$startDate}\",
+      \"end\": \"YYYY-MM-DD\",
+      \"progress\": 0,
+      \"predecessors\": \"\",
+      \"resourceIds\": [1],
+      \"level\": 1,
+      \"isSummary\": false,
+      \"notes\": \"\"
+    },
+    {
+      \"id\": 3,
+      \"name\": \"Milestone: Project Charter Approved\",
+      \"duration\": 0,
+      \"start\": \"YYYY-MM-DD\",
+      \"end\": \"YYYY-MM-DD\",
+      \"progress\": 0,
+      \"predecessors\": \"2FS\",
+      \"resourceIds\": [],
+      \"level\": 1,
+      \"milestone\": true,
+      \"notes\": \"\"
+    }
+  ]
+}
+
+Crucial Rules:
+1. Hierarchy: Major phases have level: 0 and isSummary: true. Subtasks have level: 1 or 2.
+2. Each major phase must have logical subtasks and at least 1 milestone (milestone with duration: 0).
+3. Predecessors must use MS Project notation (e.g. '2FS', '3SS', '4FS+2').
+4. Realistic business-day durations.
+5. Strict date calculation from {$startDate} within {$startYear} to {$maxYear}.
+6. Create between 3 and 5 major phases, with 12 to 20 detailed tasks in total.
+7. All task names, phases, milestones and resource titles MUST be in English.
+8. Return ONLY valid JSON.";
+        $userPrompt = "Generate project schedule for: \"{$prompt}\"\nStart Date: {$startDate}\nCurrency: {$currency}\nLanguage: English";
+    } else {
+        $systemPrompt = "Você é um Especialista Sênior em Gerenciamento de Projetos e Engenharia de Cronogramas certificado PMP/PMI.
 Sua missão é criar uma Estrutura Analítica do Projeto (EAP / WBS) completa, profissional e realista para o software ProjectClone (compatível com MS Project).
 
 A data de início do projeto deve ser: {$startDate}.
@@ -237,8 +334,8 @@ Regras Cruciais:
 6. Crie entre 3 e 6 fases principais, somando de 12 a 25 tarefas detalhadas no total para dar um cronograma rico e realista.
 7. Associe os resourceIds correspondentes a cada atividade.
 8. Retorne APENAS o JSON válido, sem comentários ou texto adicional.";
-
-    $userPrompt = "Projeto Solicitado pelo Usuário: " . $prompt;
+        $userPrompt = "Crie o cronograma para este projeto:\n\"{$prompt}\"\nData Início: {$startDate}\nMoeda: {$currency}";
+    }
 
     $jsonContent = callOpenAiChat($apiKey, $systemPrompt, $userPrompt, true, 0.2);
     $parsed = json_decode($jsonContent, true);

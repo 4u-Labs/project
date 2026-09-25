@@ -622,12 +622,25 @@ $assetVer = time();
 
           <!-- Sugestões Rápidas -->
           <div class="ai-chips-box">
-            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Sugestões Rápidas:</span>
+            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">
+              <span data-lang="pt">Sugestões Rápidas:</span>
+              <span data-lang="en">Quick Suggestions:</span>
+            </span>
             <div class="ai-chips-list">
-              <button type="button" class="ai-prompt-chip" data-prompt="Reforma completa de apartamento residencial de 85m² em 45 dias, incluindo demolição, elétrica, porcelanato, gesso, pintura e marcenaria.">🏗️ Reforma de Apartamento (45d)</button>
-              <button type="button" class="ai-prompt-chip" data-prompt="Construção de galpão industrial pré-moldado de 1.200m² em 120 dias com terraplanagem, fundação, cobertura metálica e piso usinado.">🏢 Galpão Industrial (120d)</button>
-              <button type="button" class="ai-prompt-chip" data-prompt="Desenvolvimento de aplicativo mobile de entrega de comida para iOS e Android em 90 dias, com backend API, gateway de pagamento e painel do restaurante.">📱 App Mobile Delivery (90d)</button>
-              <button type="button" class="ai-prompt-chip" data-prompt="Instalação e homologação de usina de energia solar fotovoltaica comercial de 75kWp em 30 dias com projeto, compras, montagem e conexão à rede.">⚡ Energia Solar (30d)</button>
+              <!-- PT Chips -->
+              <div data-lang="pt" style="display:flex; flex-wrap:wrap; gap:6px;">
+                <button type="button" class="ai-prompt-chip" data-prompt="Reforma completa de apartamento residencial de 85m² em 45 dias, incluindo demolição, elétrica, porcelanato, gesso, pintura e marcenaria.">🏗️ Reforma de Apartamento (45d)</button>
+                <button type="button" class="ai-prompt-chip" data-prompt="Construção de galpão industrial pré-moldado de 1.200m² em 120 dias com terraplanagem, fundação, cobertura metálica e piso usinado.">🏢 Galpão Industrial (120d)</button>
+                <button type="button" class="ai-prompt-chip" data-prompt="Desenvolvimento de aplicativo mobile de entrega de comida para iOS e Android em 90 dias, com backend API, gateway de pagamento e painel do restaurante.">📱 App Mobile Delivery (90d)</button>
+                <button type="button" class="ai-prompt-chip" data-prompt="Instalação e homologação de usina de energia solar fotovoltaica comercial de 75kWp em 30 dias com projeto, compras, montagem e conexão à rede.">⚡ Energia Solar (30d)</button>
+              </div>
+              <!-- EN Chips -->
+              <div data-lang="en" style="display:flex; flex-wrap:wrap; gap:6px;">
+                <button type="button" class="ai-prompt-chip" data-prompt="Full development and launch of an on-demand food delivery mobile app for iOS and Android in 90 days, including backend API, payment integration, real-time GPS tracking and merchant dashboard.">📱 Mobile Delivery App (90d)</button>
+                <button type="button" class="ai-prompt-chip" data-prompt="Enterprise SaaS product launch in 120 days with cloud architecture design, core microservices, Stripe billing integration, SOC2 compliance, beta testing and marketing rollout.">🚀 SaaS Cloud Platform (120d)</button>
+                <button type="button" class="ai-prompt-chip" data-prompt="Corporate headquarters office relocation in 45 days, covering lease agreement, space planning, IT and fiber infrastructure, interior fit-out, data migration and staff onboarding.">🏢 Office Relocation (45d)</button>
+                <button type="button" class="ai-prompt-chip" data-prompt="Next-generation headless e-commerce store migration in 60 days with catalog import, payment checkout, ERP sync, CDN setup, SEO audit and load testing.">⚡ E-Commerce Platform (60d)</button>
+              </div>
             </div>
           </div>
 
