@@ -169,6 +169,7 @@ const GoogleAuth = {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    access_token: accessToken,
                     email: googleUser.email,
                     name: googleUser.name || googleUser.given_name || 'Usuário 4U',
                     picture: googleUser.picture || ''
