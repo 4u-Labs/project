@@ -159,9 +159,17 @@ function resolveProjectLanguage(string $text, string $requestedLang): string
     if ($req === 'en') return 'en';
     if ($req === 'pt') return 'pt';
     
+    // Pedido explícito na mensagem do usuário
+    if (preg_match('/(em ingl[eê]s|in english|vers[aã]o em ingl[eê]s|english version|translate to english|schedule in english)/ui', $text)) {
+        return 'en';
+    }
+    if (preg_match('/(em portugu[eê]s|in portuguese|vers[aã]o em portugu[eê]s)/ui', $text)) {
+        return 'pt';
+    }
+
     // Auto-detecção por padrões comuns em inglês
-    if (preg_match('/\b(english|in english|gantt|schedule|launch|relocation|development|app|milestone|project plan|wbs|sprint|scrum|kanban|software|construction)\b/i', $text)) {
-        if (!preg_match('/\b(para|com|gerar|cronograma|obra|reforma|lançamento|tarefa|em português)\b/i', $text)) {
+    if (preg_match('/\b(gantt|schedule|launch|relocation|development|app|milestone|project plan|wbs|sprint|scrum|kanban|software|construction)\b/i', $text)) {
+        if (!preg_match('/\b(para|com|gerar|cronograma|obra|reforma|lançamento|tarefa)\b/i', $text)) {
             return 'en';
         }
     }
